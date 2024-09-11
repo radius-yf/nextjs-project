@@ -1,14 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Icons } from '../icons';
 import ThemeToggle from './ThemeToggle/theme-toggle';
 import { UserNav } from './user-nav';
 
 const menus = [
   {
     path: '/home',
-    name: '策略首页'
+    name: '港股价值趋势策略'
   },
   {
     path: '/yield-analysis',
@@ -33,11 +32,11 @@ export function Navigation() {
     return null;
   }
   return (
-    <header className="flex items-center gap-3 p-3">
-      <Link href="/" className="flex items-center gap-1 text-blue-600">
+    <header className="flex items-center gap-3 p-3 shadow">
+      {/* <Link href="/" className="flex items-center gap-1 text-blue-600">
         <Icons.logo className={`size-6 flex-none`} />
         <div> 量数科技 </div>
-      </Link>
+      </Link> */}
       <ul className="flex flex-1 gap-4 px-4 text-primary-foreground/50">
         {menus.map((menu) => (
           <li

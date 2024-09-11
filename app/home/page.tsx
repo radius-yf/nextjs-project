@@ -1,8 +1,9 @@
-import { serverApi } from '@/api/api';
-import Chart from '@/components/chart';
-import { returnChart, TrendChart } from '@/components/charts/chart-option';
-import PageContainer from '@/components/layout/page-container';
+'use client';
+import { getPortfolioHoldings } from '@/api/api';
+import { ReturnCard } from '@/components/charts/return-card';
+import { TrendCard } from '@/components/charts/trend-card';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Table,
   TableBody,
@@ -11,7 +12,10 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
+import { H1, P } from '@/components/ui/typography';
+import { useAsync } from '@/hooks/useAsync';
 import { format } from 'date-fns/esm';
+import { useRef } from 'react';
 
 const data = [
   {
@@ -89,96 +93,121 @@ const data = [
     ]
   }
 ];
+// const menus = [
+//   '策略与恒指走势对比图',
+//   '策略与恒指月度回报图',
+//   '总策略加权指标',
+//   '目前持仓'
+// ];
 
-export default async function Home() {
-  const api = serverApi();
-  const holdings = await api.getPortfolioHoldings();
-  const values = await api.getPortfolioValues();
+export default function Home() {
+  const { data: holdings } = useAsync(getPortfolioHoldings, []);
+
+  const ref1 = useRef<HTMLDivElement>(null);
+  const ref2 = useRef<HTMLDivElement>(null);
+  const ref3 = useRef<HTMLDivElement>(null);
+  const ref4 = useRef<HTMLDivElement>(null);
 
   return (
-    <PageContainer scrollable={true}>
-      <div className="grid grid-cols-8 gap-4">
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">
-              总策略加权指标
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm">
-            <div className="columns-3">
-              {data.map((i) => (
-                <div key={i.title} className="break-inside-avoid pb-4">
-                  <h4 className="font-medium">{i.title}</h4>
-                  <ul>
-                    {i.items.map((j) => (
-                      <li
-                        key={j.name}
-                        className="flex justify-between border-b border-muted-foreground/20 font-light"
-                      >
-                        <span className="overflow-hidden text-ellipsis text-nowrap">
-                          {j.name}
-                        </span>
-                        <span>
-                          {j.icon}
-                          {j.value}
-                          {j.unit}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">
-              策略与恒指走势对比图
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col text-sm">
-            <TrendChart data={values} />
-          </CardContent>
-        </Card>
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">
-              策略与恒指月度回报图
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col text-sm">
-            <Chart option={returnChart} className="flex-1" />
-          </CardContent>
-        </Card>
-        <Card className="col-span-5">
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">目前持仓</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col text-sm">
-            <Table className="text-center">
-              <TableHeader>
-                <TableRow className="hover:bg-inherit">
-                  <TableHead className="text-center">Period</TableHead>
-                  <TableHead className="text-center" colSpan={20}>
-                    Top 20 holdings history (left to right)
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {holdings.map((i) => (
-                  <TableRow key={i.date}>
-                    <TableCell>{format(new Date(i.date), 'yyyy-MM')}</TableCell>
-                    {new Array(20).fill(0).map((_, j) => (
-                      <TableCell key={j}>{i['s' + j] ?? '--'}</TableCell>
-                    ))}
-                  </TableRow>
+    <ScrollArea className="h-[calc(100dvh-60px)]">
+      <div className="grid grid-cols-1 gap-6 p-4 pb-16 md:px-8">
+        <div>
+          <H1>港股价值趋势策略</H1>
+
+          <P className="mb-8 w-1/2">
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Laboriosam
+            maiores similique non quae itaque eius beatae perferendis laudantium
+            voluptas quibusdam repellat perspiciatis, vitae temporibus ad nulla
+            sunt veniam, error nobis.
+          </P>
+        </div>
+        {/* <div className="relative">
+          <Card className="sticky top-2">
+            <CardContent>
+              <ul className="text-nowrap">
+                {[ref1, ref2, ref3, ref4].map((ref, index) => (
+                  <li
+                    key={index}
+                    className="cursor-pointer rounded-lg px-2 py-1 hover:bg-muted"
+                    onClick={() => {
+                      ref.current?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                  >
+                    {menus[index]}
+                  </li>
                 ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+              </ul>
+            </CardContent>
+          </Card>
+        </div> */}
+        <div className="flex flex-1 flex-col gap-6">
+          <TrendCard ref={ref1} />
+
+          <ReturnCard ref={ref2} />
+
+          <Card ref={ref3}>
+            <CardHeader>
+              <CardTitle>总策略加权指标</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="columns-3">
+                {data.map((i) => (
+                  <div key={i.title} className="break-inside-avoid pb-4">
+                    <h4 className="font-medium">{i.title}</h4>
+                    <ul>
+                      {i.items.map((j) => (
+                        <li
+                          key={j.name}
+                          className="flex justify-between border-b border-muted-foreground/20 font-light"
+                        >
+                          <span className="overflow-hidden text-ellipsis text-nowrap">
+                            {j.name}
+                          </span>
+                          <span>
+                            {j.icon}
+                            {j.value}
+                            {j.unit}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card ref={ref4}>
+            <CardHeader>
+              <CardTitle>目前持仓</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table className="text-center">
+                <TableHeader>
+                  <TableRow className="hover:bg-inherit">
+                    <TableHead className="text-center">Period</TableHead>
+                    <TableHead className="text-center" colSpan={20}>
+                      Top 20 holdings history (left to right)
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {holdings?.map((i) => (
+                    <TableRow key={i.date}>
+                      <TableCell>
+                        {format(new Date(i.date), 'yyyy-MM')}
+                      </TableCell>
+                      {new Array(20).fill(0).map((_, j) => (
+                        <TableCell key={j}>{i['s' + j] ?? '--'}</TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </PageContainer>
+    </ScrollArea>
   );
 }
