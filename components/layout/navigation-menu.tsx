@@ -10,7 +10,7 @@ const menus = [
     name: '港股价值趋势策略'
   },
   {
-    path: '/yield-analysis',
+    path: '/analysis',
     name: '收益率可视化分析'
   },
   {

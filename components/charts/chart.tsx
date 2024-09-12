@@ -29,6 +29,12 @@ const Chart = forwardRef<EChartsReact, EChartsReactProps>((props, ref) => {
       className={cn(['min-h-[300px]', className])}
       style={{ height: undefined }}
       theme={theme}
+      loadingOption={{
+        maskColor:
+          theme === 'dark'
+            ? 'rgba(255, 255, 255, 0.1)'
+            : 'rgba(255, 255, 255, 0.8)'
+      }}
       {...rest}
     ></EChartsReact>
   );

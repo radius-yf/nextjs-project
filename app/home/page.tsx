@@ -1,7 +1,4 @@
-'use client';
 import { getPortfolioHoldings } from '@/api/api';
-import { ReturnCard } from '@/components/charts/return-card';
-import { TrendCard } from '@/components/charts/trend-card';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -13,9 +10,10 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { H1, P } from '@/components/ui/typography';
-import { useAsync } from '@/hooks/useAsync';
 import { format } from 'date-fns/esm';
-import { useRef } from 'react';
+import { ReturnCard } from './return-card';
+import { TrendCard } from './trend-card';
+// import { useRef } from 'react';
 
 const data = [
   {
@@ -100,13 +98,14 @@ const data = [
 //   '目前持仓'
 // ];
 
-export default function Home() {
-  const { data: holdings } = useAsync(getPortfolioHoldings, []);
+export default async function Home() {
+  // const { data: holdings } = useAsync(getPortfolioHoldings, []);
+  const holdings = await getPortfolioHoldings();
 
-  const ref1 = useRef<HTMLDivElement>(null);
-  const ref2 = useRef<HTMLDivElement>(null);
-  const ref3 = useRef<HTMLDivElement>(null);
-  const ref4 = useRef<HTMLDivElement>(null);
+  // const ref1 = useRef<HTMLDivElement>(null);
+  // const ref2 = useRef<HTMLDivElement>(null);
+  // const ref3 = useRef<HTMLDivElement>(null);
+  // const ref4 = useRef<HTMLDivElement>(null);
 
   return (
     <ScrollArea className="h-[calc(100dvh-60px)]">
@@ -141,24 +140,24 @@ export default function Home() {
           </Card>
         </div> */}
         <div className="flex flex-1 flex-col gap-6">
-          <TrendCard ref={ref1} />
+          <TrendCard />
 
-          <ReturnCard ref={ref2} />
+          <ReturnCard />
 
-          <Card ref={ref3}>
+          <Card>
             <CardHeader>
               <CardTitle>总策略加权指标</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="columns-3">
                 {data.map((i) => (
-                  <div key={i.title} className="break-inside-avoid pb-4">
+                  <div key={i.title} className="break-inside-avoid pb-4 pr-6">
                     <h4 className="font-medium">{i.title}</h4>
                     <ul>
                       {i.items.map((j) => (
                         <li
                           key={j.name}
-                          className="flex justify-between border-b border-muted-foreground/20 font-light"
+                          className="border-muted-foreground/20 flex justify-between border-b font-light"
                         >
                           <span className="overflow-hidden text-ellipsis text-nowrap">
                             {j.name}
@@ -177,7 +176,7 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          <Card ref={ref4}>
+          <Card>
             <CardHeader>
               <CardTitle>目前持仓</CardTitle>
             </CardHeader>
