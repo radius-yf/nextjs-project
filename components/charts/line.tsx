@@ -14,7 +14,7 @@ const option: EChartsOption = {
     boundaryGap: false,
     axisPointer: {
       type: 'line'
-    }
+    },
   },
   yAxis: {
     type: 'value',
@@ -55,7 +55,7 @@ export function LineChart({
 }) {
   const series: EChartsOption['series'] = useMemo(() => {
     if (!data) return undefined;
-    return translate(data).map(([name, data]) => ({
+    return translate(data, 'yyyy-MM-dd').map(([name, data]) => ({
       type: 'line',
       symbol: 'none',
       name,

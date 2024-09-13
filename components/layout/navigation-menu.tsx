@@ -37,13 +37,12 @@ export function Navigation() {
         <Icons.logo className={`size-6 flex-none`} />
         <div> 量数科技 </div>
       </Link> */}
-      <ul className="flex flex-1 gap-4 px-4 text-primary-foreground/50">
+      <ul className="flex flex-1 gap-4 px-4">
         {menus.map((menu) => (
           <li
             key={menu.path}
-            className={
-              activeMenu?.path === menu.path ? 'text-primary-foreground' : ''
-            }
+            data-active={menu.path === activeMenu?.path}
+            className='text-primary-foreground/50 data-[active=true]:text-primary-foreground'
           >
             <Link href={menu.path}>{menu.name}</Link>
           </li>

@@ -12,7 +12,7 @@ declare module 'next-auth' {
   }
 
   interface User {
-    auth: string;
+    auth?: string;
   }
 }
 

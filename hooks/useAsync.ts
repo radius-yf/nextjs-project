@@ -17,10 +17,23 @@ export function useAsync<T>(
   });
 
   useEffect(() => {
+    let ignore = false;
     setState({ data: undefined, loading: true, error: undefined });
     fn()
-      .then((data) => setState({ data, loading: false, error: undefined }))
-      .catch((error) => setState({ data: undefined, loading: false, error }));
+      .then((data) => {
+        if (!ignore) {
+          setState({ data, loading: false, error: undefined });
+        }
+      })
+      .catch((error) => {
+        if (!ignore) {
+          setState({ data: undefined, loading: false, error });
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
   }, [fn]);
 
   return state;

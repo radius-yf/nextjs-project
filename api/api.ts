@@ -1,6 +1,8 @@
 'use server';
 import { auth } from '@/auth';
 import { url, graphqlAuthToken } from '@/config';
+import { format } from 'date-fns/esm';
+import { getSession } from 'next-auth/react';
 
 export async function login(username: string, password: string) {
   const res = await fetchGraphQL(
@@ -26,7 +28,7 @@ export async function getPortfolioValues(
   start_date?: string,
   end_date?: string,
   id: string = 'hk_vc0_mom',
-  return_type?: '' | 'match volatility',
+  return_type?: '' | 'match volatility'
 ) {
   const { data } = await fetchGraphQL(
     `
@@ -82,7 +84,7 @@ export async function getPortfolioHoldings(id: string = 'hk_vc0_mom') {
 
 export async function getPortfolioReturns(
   freq: 'M' | 'Y' = 'M',
-  id: string = 'hk_vc0_mom',
+  id: string = 'hk_vc0_mom'
 ) {
   const { data } = await fetchGraphQL(
     `
@@ -96,10 +98,132 @@ export async function getPortfolioReturns(
     'PortfolioReturns',
     { id, freq }
   );
-  return data.portfolio_returns as {
+  return (
+    data.portfolio_returns as {
+      id: string;
+      date: string;
+      value: number;
+    }[]
+  ).map((d) => ({
+    ...d,
+    date: format(new Date(d.date), freq === 'M' ? 'yyyy-MM' : 'yyyy')
+  }));
+}
+
+export async function getPortfolioHoldingsDetail(
+  dates?: string[],
+  id: string = 'hk_vc0_mom'
+) {
+  const { data } = await fetchGraphQL(
+    `
+  query PortfolioHoldingsDetail($id: String!, $dates: [String]) {
+    portfolio_holidings_detail(id: $id, dates: $dates) {
+      date
+      ticker
+      name
+      industry
+      fret
+      fret_1m
+      fret_2m
+      fret_3m
+      fret_4m
+      fret_5m
+      fret_6m
+      fret_7m
+      fret_8m
+      fret_9m
+      fret_10m
+      fret_11m
+      fret_12m
+    }
+  }`,
+    'PortfolioHoldingsDetail',
+    { id, dates }
+  );
+  return data.portfolio_holidings_detail as {
+    date: string;
+    ticker: string;
+    name: string;
+    industry: string;
+    fret: string;
+    fret_1m: string;
+    fret_2m: string;
+    fret_3m: string;
+    fret_4m: string;
+    fret_5m: string;
+    fret_6m: string;
+    fret_7m: string;
+    fret_8m: string;
+    fret_9m: string;
+    fret_10m: string;
+    fret_11m: string;
+    fret_12m: string;
+  }[];
+}
+
+export async function getPortfolioMetrics(id: string = 'hk_vc0_mom') {
+  const { data } = await fetchGraphQL(
+    `
+  query PortfolioMetrics($id: String!) {
+    portfolio_metrics(id: $id) {
+      id
+      key
+      value
+    }
+  }`,
+    'PortfolioMetrics',
+    { id }
+  );
+  return data.portfolio_metrics as { id: string; key: string; value: string }[];
+}
+
+export type Indicator =
+  | 'beta' // 策略相对于市场的beta值
+  | 'volatility' // 波动率
+  | 'sharpe' // 夏普率
+  | 'sortino'; // 索提诺率
+export async function getPortfolioRollingIndicator(
+  indicator: Indicator = 'beta',
+  roll_window: string = '6M',
+  id: string = 'hk_vc0_mom'
+) {
+  const { data } = await fetchGraphQL(
+    `
+  query PortfolioRollingIndicator($id: String!, $indicator: String!="beta", $roll_window: String) {
+    portfolio_rolling_indicator(id: $id, indicator: $indicator, roll_window: $roll_window) {
+      id
+      date
+      value
+    }
+  }`,
+    'PortfolioRollingIndicator',
+    { id, indicator, roll_window }
+  );
+  return data?.portfolio_rolling_indicator as {
     id: string;
     date: string;
     value: number;
+  }[];
+}
+
+export async function getPortfolioDrawdowns(id: string = 'hk_vc0_mom') {
+  const { data } = await fetchGraphQL(
+    `query PortfolioDrawdowns($id: String!) {
+  portfolio_drawdowns(id: $id) {
+    Start
+    End
+    Drawdown
+    Days
+  }
+}`,
+    'PortfolioDrawdowns',
+    { id }
+  );
+  return data.portfolio_drawdowns as {
+    Start: string;
+    End: string;
+    Drawdown: number;
+    Days: number;
   }[];
 }
 
@@ -117,7 +241,15 @@ async function fetchGraphQL(
   variables: any = {},
   header: any = {}
 ) {
-  const token = (await auth())?.user?.auth;
+  const body = {
+    query,
+    variables,
+    operationName
+  };
+  const token =
+    typeof window === 'undefined'
+      ? (await auth())?.user?.auth
+      : (await getSession())?.user?.auth;
   const res = await fetch(url + '/v1/graphql', {
     method: 'POST',
     headers: {
@@ -126,16 +258,15 @@ async function fetchGraphQL(
       Authorization2: token,
       ...header
     },
-    body: JSON.stringify({
-      query,
-      variables,
-      operationName
-    })
+    body: JSON.stringify(body)
   });
   const json = await res.json();
   if (json.errors) {
     // eslint-disable-next-line no-console
-    console.log('graphql error', json);
+    console.log('graphql error', operationName, json.errors, body);
+  } else {
+    // eslint-disable-next-line no-console
+    console.log('graphql response', operationName, json);
   }
   return json;
 }

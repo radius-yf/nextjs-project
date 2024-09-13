@@ -29,14 +29,9 @@ const dateRange = (active: string) => {
 export const TrendCard = forwardRef<HTMLDivElement>((_, ref) => {
   const { data, loading, fetchData } = useAsyncReducer(
     async (active: string) => {
-      const data =
-        active === 'ALL'
-          ? await getPortfolioValues()
-          : await getPortfolioValues(...dateRange(active));
-      return data.map((i) => ({
-        ...i,
-        date: format(new Date(i.date), 'yyyy-MM-dd')
-      }));
+      return active === 'ALL'
+        ? await getPortfolioValues()
+        : await getPortfolioValues(...dateRange(active));
     },
     ['ALL']
   );
