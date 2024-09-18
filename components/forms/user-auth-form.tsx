@@ -16,9 +16,9 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 // import GithubSignInButton from '../github-auth-button';
-import { toast } from '../ui/use-toast';
 import { createHash } from 'crypto';
 import { useRouter } from 'nextjs-toploader/app';
+import { toast } from '../ui/use-toast';
 const md5 = function (str: string) {
   return createHash('md5').update(str).digest('hex');
 };
@@ -55,6 +55,11 @@ export default function UserAuthForm() {
       redirect: false
     });
 
+    if (res?.ok) {
+      setLoading(false);
+      router.replace(callbackUrl || '/');
+    }
+
     if (res?.error) {
       setLoading(false);
       toast({
@@ -64,11 +69,11 @@ export default function UserAuthForm() {
       });
     }
   };
-  useEffect(() => {
-    if (session) {
-      router.replace(callbackUrl || '/');
-    }
-  }, [callbackUrl, router, session]);
+  // useEffect(() => {
+  //   if (session) {
+  //     router.replace(callbackUrl || '/');
+  //   }
+  // }, [session]);
 
   return (
     <>

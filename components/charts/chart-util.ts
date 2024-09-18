@@ -2,7 +2,7 @@ import { format } from 'date-fns/esm';
 
 export const translate = (
   data: { id: string; date: string; value: number }[],
-  fmt?: string
+  fmt?: string | null
 ) =>
   Object.entries(Object.groupBy(data, (d) => d.id)).map(
     ([key, val]) =>

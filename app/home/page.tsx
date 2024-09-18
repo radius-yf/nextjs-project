@@ -13,7 +13,6 @@ import { H1, P } from '@/components/ui/typography';
 import { format } from 'date-fns/esm';
 import { ReturnCard } from './return-card';
 import { TrendCard } from './trend-card';
-// import { useRef } from 'react';
 
 const data = [
   {
@@ -91,21 +90,9 @@ const data = [
     ]
   }
 ];
-// const menus = [
-//   '策略与恒指走势对比图',
-//   '策略与恒指月度回报图',
-//   '总策略加权指标',
-//   '目前持仓'
-// ];
 
 export default async function Home() {
-  // const { data: holdings } = useAsync(getPortfolioHoldings, []);
   const holdings = await getPortfolioHoldings();
-
-  // const ref1 = useRef<HTMLDivElement>(null);
-  // const ref2 = useRef<HTMLDivElement>(null);
-  // const ref3 = useRef<HTMLDivElement>(null);
-  // const ref4 = useRef<HTMLDivElement>(null);
 
   return (
     <ScrollArea className="h-[calc(100dvh-60px)]">
@@ -120,25 +107,6 @@ export default async function Home() {
             sunt veniam, error nobis.
           </P>
         </div>
-        {/* <div className="relative">
-          <Card className="sticky top-2">
-            <CardContent>
-              <ul className="text-nowrap">
-                {[ref1, ref2, ref3, ref4].map((ref, index) => (
-                  <li
-                    key={index}
-                    className="cursor-pointer rounded-lg px-2 py-1 hover:bg-muted"
-                    onClick={() => {
-                      ref.current?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                  >
-                    {menus[index]}
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        </div> */}
         <div className="flex flex-1 flex-col gap-6">
           <TrendCard />
 
@@ -157,7 +125,7 @@ export default async function Home() {
                       {i.items.map((j) => (
                         <li
                           key={j.name}
-                          className="border-muted-foreground/20 flex justify-between border-b font-light"
+                          className="flex justify-between border-b border-muted-foreground/20 font-light"
                         >
                           <span className="overflow-hidden text-ellipsis text-nowrap">
                             {j.name}
@@ -196,9 +164,26 @@ export default async function Home() {
                       <TableCell>
                         {format(new Date(i.date), 'yyyy-MM')}
                       </TableCell>
-                      {new Array(20).fill(0).map((_, j) => (
-                        <TableCell key={j}>{i['s' + j] ?? '--'}</TableCell>
-                      ))}
+                      <TableCell>{i.s0 ?? '--'}</TableCell>
+                      <TableCell>{i.s1 ?? '--'}</TableCell>
+                      <TableCell>{i.s2 ?? '--'}</TableCell>
+                      <TableCell>{i.s3 ?? '--'}</TableCell>
+                      <TableCell>{i.s4 ?? '--'}</TableCell>
+                      <TableCell>{i.s5 ?? '--'}</TableCell>
+                      <TableCell>{i.s6 ?? '--'}</TableCell>
+                      <TableCell>{i.s7 ?? '--'}</TableCell>
+                      <TableCell>{i.s8 ?? '--'}</TableCell>
+                      <TableCell>{i.s9 ?? '--'}</TableCell>
+                      <TableCell>{i.s10 ?? '--'}</TableCell>
+                      <TableCell>{i.s11 ?? '--'}</TableCell>
+                      <TableCell>{i.s12 ?? '--'}</TableCell>
+                      <TableCell>{i.s13 ?? '--'}</TableCell>
+                      <TableCell>{i.s14 ?? '--'}</TableCell>
+                      <TableCell>{i.s15 ?? '--'}</TableCell>
+                      <TableCell>{i.s16 ?? '--'}</TableCell>
+                      <TableCell>{i.s17 ?? '--'}</TableCell>
+                      <TableCell>{i.s18 ?? '--'}</TableCell>
+                      <TableCell>{i.s19 ?? '--'}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

@@ -16,11 +16,10 @@ import {
   TableRow
 } from '../ui/table';
 
-function translate<T extends { id: string; value: unknown }, K extends keyof T>(
-  data: T[],
-  key: K,
-  keyName: string | undefined
-): [any[], any[]] {
+export function translate<
+  T extends { id: string; value: unknown },
+  K extends keyof T
+>(data: T[], key: K, keyName: string | undefined): [any[], any[]] {
   return [
     [
       { accessorKey: 'key', header: keyName || key },
@@ -38,6 +37,15 @@ function translate<T extends { id: string; value: unknown }, K extends keyof T>(
   ];
 }
 
+function splitArray<T>(array: T[], n: number) {
+  const result = [];
+  const size = Math.ceil(array.length / n);
+  for (let i = 0; i < n; i++) {
+    result.push(array.slice(i * size, (i + 1) * size));
+  }
+  return result;
+}
+
 interface DataTableProps<
   T extends { id: string; value: unknown },
   K extends keyof T
@@ -45,18 +53,29 @@ interface DataTableProps<
   data: T[];
   groupKey: K;
   groupName?: string;
+  split?: number;
 }
 
 export function DataTable<
   T extends { id: string; value: unknown },
   K extends keyof T
->({ data, groupKey, groupName }: DataTableProps<T, K>) {
+>({ data, groupKey, groupName, split = 1 }: DataTableProps<T, K>) {
   const [columns, value] = useMemo(
     () => translate(data, groupKey, groupName),
     [data, groupKey, groupName]
   );
 
-  return <ReactTable columns={columns} data={value} />;
+  return (
+    <>
+      {split > 1 ? (
+        splitArray(value, split).map((data, i) => (
+          <ReactTable key={i} columns={columns} data={data} />
+        ))
+      ) : (
+        <ReactTable columns={columns} data={value} />
+      )}
+    </>
+  );
 }
 
 export function ReactTable<TData extends unknown, TValue>({
@@ -73,10 +92,10 @@ export function ReactTable<TData extends unknown, TValue>({
     getFilteredRowModel: getFilteredRowModel()
   });
   return (
-    <Table className="relative">
+    <Table>
       <TableHeader>
         {table.getHeaderGroups().map((headerGroup) => (
-          <TableRow key={headerGroup.id} className="hover:bg-inherit">
+          <TableRow key={headerGroup.id}>
             {headerGroup.headers.map((header) => {
               return (
                 <TableHead key={header.id}>
@@ -100,7 +119,7 @@ export function ReactTable<TData extends unknown, TValue>({
               data-state={row.getIsSelected() && 'selected'}
             >
               {row.getVisibleCells().map((cell) => (
-                <TableCell key={cell.id} className="px-2">
+                <TableCell key={cell.id}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </TableCell>
               ))}

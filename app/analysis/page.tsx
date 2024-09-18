@@ -24,6 +24,7 @@ export default async function Analysis() {
       getPortfolioDrawdowns(),
       getPortfolioMetrics()
     ]);
+
   return (
     <PageContainer scrollable={true}>
       <div className="grid grid-cols-1 gap-6 pb-16">
@@ -49,7 +50,14 @@ export default async function Analysis() {
           <BarChart data={returnsM} />
         </ChartCard>
         <ChartCard title="Key Performance Metrics">
-          <DataTable data={metrics} groupKey="key" groupName="Metric" />
+          <div className="flex gap-6">
+            <DataTable
+              data={metrics}
+              groupKey="key"
+              groupName="Metric"
+              split={4}
+            />
+          </div>
         </ChartCard>
         {/* <ChartCard title="Cumulative Returns vs Benchmark (Log Scaled)">
           <LineChart data={[]} />
@@ -61,7 +69,17 @@ export default async function Analysis() {
           <LineChart data={beta} />
         </ChartCard>
         <ChartCard title="EOY Returns vs Benchmark">
-          <DataTable data={returnsY} groupKey="date" groupName="Year" />
+          <div className="flex gap-6">
+            <DataTable
+              data={returnsY.map((i) => ({
+                ...i,
+                value: (i.value * 100).toFixed(2) + '%'
+              }))}
+              groupKey="date"
+              groupName="Year"
+              split={3}
+            />
+          </div>
         </ChartCard>
         <ChartCard title="Worst 10 Drawdowns">
           <ReactTable

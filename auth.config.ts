@@ -30,7 +30,7 @@ const authConfig = {
   ],
   callbacks: {
     jwt: async ({ token, user }) => {
-      if (user) {
+      if (user && user.auth) {
         token.gql = user.auth;
       }
       return token;

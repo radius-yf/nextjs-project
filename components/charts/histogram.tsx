@@ -18,9 +18,9 @@ const option: EChartsOption = {
 
       const [label] = p[0].value as [number, number];
       return `<div style="display: grid; grid-template-columns: repeat(3, auto);">
-        <span style="grid-column: 1 / span 3">${label - (PERCENTAGE_INTERVAL / 2)}% ~ ${
-          label + (PERCENTAGE_INTERVAL / 2)
-        }%</span>
+        <span style="grid-column: 1 / span 3">${
+          label - PERCENTAGE_INTERVAL / 2
+        }% ~ ${label + PERCENTAGE_INTERVAL / 2}%</span>
         ${p
           .map(
             ({ marker, seriesName, data }) =>
@@ -34,7 +34,7 @@ const option: EChartsOption = {
   },
   xAxis: {
     type: 'value',
-    maxInterval: PERCENTAGE_INTERVAL < 4 ? PERCENTAGE_INTERVAL * 2 : PERCENTAGE_INTERVAL,
+    maxInterval: PERCENTAGE_INTERVAL,
     axisLabel: {
       formatter: '{value}%'
     },
@@ -62,31 +62,26 @@ export function HistogramChart({
 }) {
   const series = useMemo(() => {
     if (!data) return [];
+
     const val = Object.entries(
-      Object.groupBy(data, (d) => Math.floor(d.value * (100 / PERCENTAGE_INTERVAL)))
+      Object.groupBy(data, (d) =>
+        Math.floor(d.value * (100 / PERCENTAGE_INTERVAL))
+      )
     )
       .map(([k, v]) => ({
         x: Number(k),
         data: Object.groupBy(v!, (d) => d.id)
       }))
-      .toSorted((a, b) => a.x - b.x)
-      .flatMap((item, index, arr) => {
-        if (arr[index + 1] && arr[index + 1].x - item.x > 1) {
-          return [
-            item,
-            ...new Array(arr[index + 1].x - item.x - 1).fill(0).map((_, i) => ({
-              x: item.x + i + 1,
-              data: {} as typeof item.data
-            }))
-          ];
-        } else {
-          return [item];
-        }
-      });
+      .toSorted((a, b) => a.x - b.x);
+    const result = eliminateOutliers(val);
+
     return Array.from(new Set(data.map((d) => d.id))).map((name, index) => ({
       type: 'bar',
       name,
-      data: val.map((d) => [d.x * PERCENTAGE_INTERVAL + (PERCENTAGE_INTERVAL / 2), d.data[name]?.length ?? 0]),
+      data: result.map((d) => [
+        d.x * PERCENTAGE_INTERVAL + PERCENTAGE_INTERVAL / 2,
+        d.data[name]?.length ?? 0
+      ]),
       barGap: '-100%',
       barWidth: '99%',
       itemStyle: {
@@ -102,4 +97,26 @@ export function HistogramChart({
       className="min-h-[500px]"
     ></Chart>
   );
+}
+
+function eliminateOutliers<
+  T extends { x: number; data: Partial<Record<string, any[]>> }
+>(data: T[]): T[] {
+  while (
+    data[1].x - data[0].x > 1 &&
+    Object.values(data[0].data).reduce((a, b) => a + (b?.length ?? 0), 0) < 4
+  ) {
+    data = data.slice(1);
+  }
+
+  while (
+    data[data.length - 1].x - data[data.length - 2].x > 1 &&
+    Object.values(data[data.length - 1].data).reduce(
+      (a, b) => a + (b?.length ?? 0),
+      0
+    ) < 4
+  ) {
+    data = data.slice(0, -1);
+  }
+  return data;
 }

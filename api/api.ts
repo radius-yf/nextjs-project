@@ -1,8 +1,9 @@
 'use server';
 import { auth } from '@/auth';
-import { url, graphqlAuthToken } from '@/config';
+import { graphqlAuthToken, url } from '@/config';
 import { format } from 'date-fns/esm';
 import { getSession } from 'next-auth/react';
+import { redirect } from 'next/navigation';
 
 export async function login(username: string, password: string) {
   const res = await fetchGraphQL(
@@ -79,7 +80,29 @@ export async function getPortfolioHoldings(id: string = 'hk_vc0_mom') {
     'PortfolioHoldings',
     { id }
   );
-  return data.portfolio_holdings as { date: string; [key: string]: string }[];
+  return data.portfolio_holdings as {
+    date: string;
+    s0: string;
+    s1: string;
+    s2: string;
+    s3: string;
+    s4: string;
+    s5: string;
+    s6: string;
+    s7: string;
+    s8: string;
+    s9: string;
+    s10: string;
+    s11: string;
+    s12: string;
+    s13: string;
+    s14: string;
+    s15: string;
+    s16: string;
+    s17: string;
+    s18: string;
+    s19: string;
+  }[];
 }
 
 export async function getPortfolioReturns(
@@ -145,19 +168,19 @@ export async function getPortfolioHoldingsDetail(
     ticker: string;
     name: string;
     industry: string;
-    fret: string;
-    fret_1m: string;
-    fret_2m: string;
-    fret_3m: string;
-    fret_4m: string;
-    fret_5m: string;
-    fret_6m: string;
-    fret_7m: string;
-    fret_8m: string;
-    fret_9m: string;
-    fret_10m: string;
-    fret_11m: string;
-    fret_12m: string;
+    fret: number | null;
+    fret_1m: number | null;
+    fret_2m: number | null;
+    fret_3m: number | null;
+    fret_4m: number | null;
+    fret_5m: number | null;
+    fret_6m: number | null;
+    fret_7m: number | null;
+    fret_8m: number | null;
+    fret_9m: number | null;
+    fret_10m: number | null;
+    fret_11m: number | null;
+    fret_12m: number | null;
   }[];
 }
 
@@ -262,11 +285,16 @@ async function fetchGraphQL(
   });
   const json = await res.json();
   if (json.errors) {
-    // eslint-disable-next-line no-console
-    console.log('graphql error', operationName, json.errors, body);
+    const errInfo = json.errors[0];
+    if (errInfo.extensions.code === 403) {
+      redirect('/login');
+      // throw Error('Unauthorized');
+    } else {
+      throw Error(errInfo.message);
+    }
   } else {
     // eslint-disable-next-line no-console
-    console.log('graphql response', operationName, json);
+    console.log('graphql response', operationName);
   }
   return json;
 }
