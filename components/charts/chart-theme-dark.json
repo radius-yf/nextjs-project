@@ -33,6 +33,11 @@
       "color": "#aaaaaa"
     }
   },
+  "heatmap": {
+    "itemStyle": {
+      "borderColor": "hsl(240deg 9.28% 19.02%)"
+    }
+  },
   "line": {
     "itemStyle": {
       "borderWidth": 1
@@ -364,7 +369,7 @@
     }
   },
   "visualMap": {
-    "color": ["#bf444c", "#d88273", "#f6efa6"]
+    "color": ["rgb(48, 204, 90)", "rgb(65, 69, 84)", "rgb(246, 53, 56)"]
   },
   "dataZoom": {
     "backgroundColor": "rgba(47,69,84,0)",

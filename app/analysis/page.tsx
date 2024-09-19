@@ -7,6 +7,7 @@ import {
 } from '@/api/api';
 import { BarChart } from '@/components/charts/bar';
 import { ChartCard } from '@/components/charts/card';
+import { HeatChart } from '@/components/charts/heat';
 import { HistogramChart } from '@/components/charts/histogram';
 import { LineChart } from '@/components/charts/line';
 import PageContainer from '@/components/layout/page-container';
@@ -91,6 +92,9 @@ export default async function Analysis() {
               { accessorKey: 'Days', header: 'Days' }
             ]}
           />
+        </ChartCard>
+        <ChartCard title="Monthly Returns">
+          <HeatChart data={returnsM} />
         </ChartCard>
       </div>
     </PageContainer>

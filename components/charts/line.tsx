@@ -52,7 +52,7 @@ export function LineChart({
     date: string;
     value: number;
   }[];
-  fmt: string | null;
+  fmt?: string | null;
   loading?: boolean;
 }) {
   const series: EChartsOption['series'] = useMemo(() => {
@@ -63,7 +63,7 @@ export function LineChart({
       name,
       data
     }));
-  }, [data]);
+  }, [data, fmt]);
   return (
     <Chart
       option={{ ...option, series }}
