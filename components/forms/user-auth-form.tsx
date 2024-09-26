@@ -10,9 +10,9 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { signIn, useSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 // import GithubSignInButton from '../github-auth-button';
@@ -37,7 +37,7 @@ export default function UserAuthForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl');
   const [loading, setLoading] = useState(false);
-  const { data: session } = useSession();
+  // const { data: session } = useSession();
   const defaultValues = {
     email: 'test@test.com',
     password: 'UnaEOIgrq#kgb89@#ls'

@@ -15,27 +15,7 @@ import {
   TableHeader,
   TableRow
 } from '../ui/table';
-
-export function translate<
-  T extends { id: string; value: unknown },
-  K extends keyof T
->(data: T[], key: K, keyName: string | undefined): [any[], any[]] {
-  return [
-    [
-      { accessorKey: 'key', header: keyName || key },
-      ...Array.from(new Set(data.map((d) => d.id))).map((item) => ({
-        accessorKey: item,
-        header: item
-      }))
-    ],
-    Object.entries(Object.groupBy(data, (d) => d[key] as string)).map(
-      ([key, val]) => ({
-        key,
-        ...val?.reduce((acc, item) => ({ ...acc, [item.id]: item.value }), {})
-      })
-    )
-  ];
-}
+import { group } from '@/lib/data-conversion';
 
 function splitArray<T>(array: T[], n: number) {
   const result = [];
@@ -61,18 +41,25 @@ export function DataTable<
   K extends keyof T
 >({ data, groupKey, groupName, split = 1 }: DataTableProps<T, K>) {
   const [columns, value] = useMemo(
-    () => translate(data, groupKey, groupName),
-    [data, groupKey, groupName]
+    () => group(data, groupKey),
+    [data, groupKey]
   );
+  const col: ColumnDef<any, any>[] = [
+    { accessorKey: groupKey, header: groupName },
+    ...columns.map((c) => ({
+      accessorKey: c,
+      header: c
+    }))
+  ];
 
   return (
     <>
       {split > 1 ? (
         splitArray(value, split).map((data, i) => (
-          <ReactTable key={i} columns={columns} data={data} />
+          <ReactTable key={i} columns={col} data={data} />
         ))
       ) : (
-        <ReactTable columns={columns} data={value} />
+        <ReactTable columns={col} data={value} />
       )}
     </>
   );

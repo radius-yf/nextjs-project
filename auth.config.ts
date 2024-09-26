@@ -3,6 +3,7 @@ import CredentialProvider from 'next-auth/providers/credentials';
 import { login } from './api/api';
 
 const authConfig = {
+  trustHost: true,
   providers: [
     CredentialProvider({
       credentials: {

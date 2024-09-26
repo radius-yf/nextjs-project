@@ -6,13 +6,15 @@ import {
   getPortfolioValues
 } from '@/api/api';
 import { BarChart } from '@/components/charts/bar';
+import { Boxplot } from '@/components/charts/boxplot';
 import { ChartCard } from '@/components/charts/card';
 import { HeatChart } from '@/components/charts/heat';
 import { HistogramChart } from '@/components/charts/histogram';
 import { LineChart } from '@/components/charts/line';
 import PageContainer from '@/components/layout/page-container';
 import { DataTable, ReactTable } from '@/components/tables/table';
-import { H1, P } from '@/components/ui/typography';
+import { H1, H4, P } from '@/components/ui/typography';
+import { groupBy } from '@/lib/data-conversion';
 
 export default async function Analysis() {
   const [values, returnsY, returnsM, beta, volatility, drawdowns, metrics] =
@@ -25,7 +27,6 @@ export default async function Analysis() {
       getPortfolioDrawdowns(),
       getPortfolioMetrics()
     ]);
-
   return (
     <PageContainer scrollable={true}>
       <div className="grid grid-cols-1 gap-6 pb-16">
@@ -51,13 +52,25 @@ export default async function Analysis() {
           <BarChart data={returnsM} />
         </ChartCard>
         <ChartCard title="Key Performance Metrics">
-          <div className="flex gap-6">
-            <DataTable
-              data={metrics}
-              groupKey="key"
-              groupName="Metric"
-              split={4}
-            />
+          <div className="columns-4">
+            {groupBy(metrics[1], 'group')
+              .filter(([k]) => k)
+              .map(([key, item]) => (
+                <div key={key} className="break-inside-avoid pb-4 pr-6">
+                  <H4>{key}</H4>
+                  <ReactTable
+                    data={item}
+                    columns={[
+                      { accessorKey: 'key', header: 'Metric' },
+                      // { accessorKey: 'group', header: 'group' },
+                      ...metrics[0].map((i) => ({
+                        accessorKey: i,
+                        header: i
+                      }))
+                    ]}
+                  />
+                </div>
+              ))}
           </div>
         </ChartCard>
         {/* <ChartCard title="Cumulative Returns vs Benchmark (Log Scaled)">
@@ -95,6 +108,9 @@ export default async function Analysis() {
         </ChartCard>
         <ChartCard title="Monthly Returns">
           <HeatChart data={returnsM} />
+        </ChartCard>
+        <ChartCard title="Boxplot">
+          <Boxplot />
         </ChartCard>
       </div>
     </PageContainer>

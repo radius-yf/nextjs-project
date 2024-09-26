@@ -4,6 +4,8 @@ import { graphqlAuthToken, url } from '@/config';
 import { format } from 'date-fns/esm';
 import { getSession } from 'next-auth/react';
 import { redirect } from 'next/navigation';
+import { generateKPMGroup } from './KPMGroup';
+import { generateSummary } from './summary';
 
 export async function login(username: string, password: string) {
   const res = await fetchGraphQL(
@@ -197,7 +199,12 @@ export async function getPortfolioMetrics(id: string = 'hk_vc0_mom') {
     'PortfolioMetrics',
     { id }
   );
-  return data.portfolio_metrics as { id: string; key: string; value: string }[];
+  const metrics = data.portfolio_metrics as {
+    id: string;
+    key: string;
+    value: string;
+  }[];
+  return generateKPMGroup(metrics);
 }
 
 export type Indicator =
@@ -229,18 +236,22 @@ export async function getPortfolioRollingIndicator(
   }[];
 }
 
-export async function getPortfolioDrawdowns(id: string = 'hk_vc0_mom') {
+export async function getPortfolioDrawdowns(
+  id: string = 'hk_vc0_mom',
+  dd_type: 'worst' | 'longest' = 'worst'
+) {
   const { data } = await fetchGraphQL(
-    `query PortfolioDrawdowns($id: String!) {
-  portfolio_drawdowns(id: $id) {
-    Start
-    End
-    Drawdown
-    Days
-  }
-}`,
+    `
+  query PortfolioDrawdowns($id: String!, $dd_type: String="worst") {
+    portfolio_drawdowns(id: $id, dd_type: $dd_type) {
+      Start
+      End
+      Drawdown
+      Days
+    }
+  }`,
     'PortfolioDrawdowns',
-    { id }
+    { id, dd_type }
   );
   return data.portfolio_drawdowns as {
     Start: string;
@@ -248,6 +259,21 @@ export async function getPortfolioDrawdowns(id: string = 'hk_vc0_mom') {
     Drawdown: number;
     Days: number;
   }[];
+}
+
+export async function getPortfolioSummary(id: string = 'hk_vc0_mom') {
+  const { data } = await fetchGraphQL(
+    `
+  query PortfolioSummary($id: String!) {
+    portfolio_summary(id: $id) {
+      key
+      value
+    }
+  }`,
+    'PortfolioSummary',
+    { id }
+  );
+  return generateSummary(data.portfolio_summary);
 }
 
 /**
@@ -290,7 +316,9 @@ async function fetchGraphQL(
       redirect('/login');
       // throw Error('Unauthorized');
     } else {
-      throw Error(errInfo.message);
+      // eslint-disable-next-line no-console
+      console.log('graphql error', operationName, errInfo);
+      throw Error(operationName + ': ' + errInfo.message);
     }
   } else {
     // eslint-disable-next-line no-console

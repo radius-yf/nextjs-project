@@ -1,4 +1,4 @@
-import { getPortfolioHoldings } from '@/api/api';
+import { getPortfolioHoldings, getPortfolioSummary } from '@/api/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -13,86 +13,13 @@ import { H1, P } from '@/components/ui/typography';
 import { format } from 'date-fns/esm';
 import { ReturnCard } from './return-card';
 import { TrendCard } from './trend-card';
-
-const data = [
-  {
-    title: 'Multiples',
-    items: [
-      { name: 'TEV/LTM Unlevered FCF', value: 1, unit: '', icon: '$' },
-      { name: 'Market Cap/LTM Levered FCF', value: 1, unit: '', icon: '$' },
-      { name: 'P/LTM Normalized EPS', value: 1, unit: '', icon: '$' },
-      { name: 'P/LTM EPS', value: 1, unit: '', icon: '$' },
-      { name: 'P/BV', value: 1, unit: '', icon: '$' },
-      { name: 'P/Tangible BV', value: 1, unit: '', icon: '$' },
-      { name: 'TEV/LTM Total Revenue', value: 1, unit: '', icon: '$' },
-      { name: 'Market Cap/LTM Total Revenue', value: 1, unit: '', icon: '$' },
-      { name: 'TEV/LTM EBITDA', value: 1, unit: '', icon: '$' },
-      { name: 'TEV/LTM EBIT', value: 1, unit: '', icon: '$' }
-    ]
-  },
-  {
-    title: 'Financial Health',
-    items: [
-      {
-        name: 'Cash & Short Term Investments / Total Debt',
-        value: 1,
-        unit: '',
-        icon: ''
-      },
-      { name: 'Total Current Assets/Total Debt', value: 1, unit: '', icon: '' },
-      { name: 'Total Debt/EBITDA', value: 1, unit: '', icon: '' }
-    ]
-  },
-  {
-    title: 'Growth Over Prior Year',
-    items: [
-      { name: 'Total Revenue', value: 1, unit: '%', icon: '' },
-      { name: 'Gross Profit', value: 1, unit: '%', icon: '' },
-      { name: 'EBITDA', value: 1, unit: '%', icon: '' },
-      { name: 'Earnings from Cont. Ops.', value: 1, unit: '%', icon: '' },
-      { name: 'Net Income', value: 1, unit: '%', icon: '' },
-      { name: 'Unlevered Free Cash Flow', value: 1, unit: '%', icon: '' },
-      { name: 'Dividend per Share', value: 1, unit: '%', icon: '' }
-    ]
-  },
-  {
-    title: 'Returns',
-    items: [
-      { name: '1月涨幅', value: 1, unit: '%', icon: '' },
-      { name: '3月涨幅', value: 1, unit: '%', icon: '' },
-      { name: '6月涨幅', value: 1, unit: '%', icon: '' },
-      { name: 'ROE', value: 1, unit: '%', icon: '' },
-      { name: 'ROA', value: 1, unit: '%', icon: '' },
-      { name: 'ROC', value: 1, unit: '%', icon: '' }
-    ]
-  },
-  {
-    title: 'Margin Analysis',
-    items: [
-      { name: 'Gross Margin', value: 1, unit: '%', icon: '' },
-      { name: 'SG&A Margin', value: 1, unit: '%', icon: '' },
-      { name: 'EBITDA Margin', value: 1, unit: '%', icon: '' },
-      { name: 'EBIT Margin', value: 1, unit: '%', icon: '' },
-      { name: 'Earnings from Cont. Ops Margin', value: 1, unit: '%', icon: '' },
-      { name: 'Net Income Margin', value: 1, unit: '%', icon: '' },
-      { name: 'Levered Free Cash Flow Margin', value: 1, unit: '%', icon: '' },
-      { name: 'Unlevered Free Cash Flow Margin', value: 1, unit: '%', icon: '' }
-    ]
-  },
-  {
-    title: 'Dividends',
-    items: [
-      { name: '分红/市值', value: 1, unit: '', icon: '' },
-      { name: '回购收益率/市值', value: 1, unit: '', icon: '' },
-      { name: '（分红+回购）/TEV', value: 1, unit: '', icon: '' },
-      { name: '自由现金流收益率/市值', value: 1, unit: '', icon: '' },
-      { name: '自由现金流收益率/TEV', value: 1, unit: '', icon: '' }
-    ]
-  }
-];
+import { ChartCard } from '@/components/charts/card';
 
 export default async function Home() {
-  const holdings = await getPortfolioHoldings();
+  const [holdings, summary] = await Promise.all([
+    getPortfolioHoldings(),
+    getPortfolioSummary()
+  ]);
 
   return (
     <ScrollArea className="h-[calc(100dvh-60px)]">
@@ -112,37 +39,35 @@ export default async function Home() {
 
           <ReturnCard />
 
-          <Card>
+          <ChartCard title="总策略加权指标">
+            <div className="columns-3">
+              {summary.map(([title, items]) => (
+                <div key={title} className="break-inside-avoid pb-4 pr-6">
+                  <h4 className="font-medium">{title}</h4>
+                  <ul>
+                    {items.map((j) => (
+                      <li
+                        key={j.name}
+                        className="flex justify-between border-b border-muted-foreground/20 font-light"
+                      >
+                        <span className="overflow-hidden text-ellipsis text-nowrap">
+                          {j.name}
+                        </span>
+                        <span>{j.value}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </ChartCard>
+          {/* <Card>
             <CardHeader>
-              <CardTitle>总策略加权指标</CardTitle>
+              <CardTitle></CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="columns-3">
-                {data.map((i) => (
-                  <div key={i.title} className="break-inside-avoid pb-4 pr-6">
-                    <h4 className="font-medium">{i.title}</h4>
-                    <ul>
-                      {i.items.map((j) => (
-                        <li
-                          key={j.name}
-                          className="flex justify-between border-b border-muted-foreground/20 font-light"
-                        >
-                          <span className="overflow-hidden text-ellipsis text-nowrap">
-                            {j.name}
-                          </span>
-                          <span>
-                            {j.icon}
-                            {j.value}
-                            {j.unit}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
           <Card>
             <CardHeader>

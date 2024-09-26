@@ -70,8 +70,7 @@
   },
   "boxplot": {
     "itemStyle": {
-      "borderWidth": 0,
-      "borderColor": "#ccc"
+      "borderWidth": 1
     }
   },
   "parallel": {
