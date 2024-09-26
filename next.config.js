@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
-    tsconfigPath: './tsconfig.json',
-    ignoreBuildErrors: true
+    tsconfigPath: './tsconfig.json'
+    // ignoreBuildErrors: true
   },
   images: {
     domains: ['utfs.io']
