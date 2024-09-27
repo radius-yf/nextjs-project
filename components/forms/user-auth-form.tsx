@@ -56,7 +56,6 @@ export default function UserAuthForm() {
     });
 
     if (res?.ok) {
-      setLoading(false);
       router.replace(callbackUrl || '/');
     }
 

@@ -1,5 +1,6 @@
-import { getPortfolioHoldings } from '@/api/api';
+import { getPortfolioHoldings, getPortfolioHoldingsDetail } from '@/api/api';
 import { ChartCard } from '@/components/charts/card';
+import HoldingLine from '@/components/charts/holding-line';
 import PageContainer from '@/components/layout/page-container';
 import {
   Table,
@@ -14,7 +15,10 @@ import { format } from 'date-fns/esm';
 import Link from 'next/link';
 
 export default async function Holdings() {
-  const holdings = await getPortfolioHoldings();
+  const [holdings, detail] = await Promise.all([
+    getPortfolioHoldings(),
+    getPortfolioHoldingsDetail()
+  ]);
   return (
     <PageContainer scrollable={true}>
       <div className="grid grid-cols-1 gap-6 pb-16">
@@ -69,6 +73,11 @@ export default async function Holdings() {
               ))}
             </TableBody>
           </Table>
+        </ChartCard>
+        <ChartCard title="Detail">
+          <HoldingLine
+            data={detail.filter((i) => ['基准', '策略'].includes(i.name))}
+          />
         </ChartCard>
       </div>
     </PageContainer>

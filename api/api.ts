@@ -6,6 +6,7 @@ import { getSession } from 'next-auth/react';
 import { redirect } from 'next/navigation';
 import { generateKPMGroup } from './KPMGroup';
 import { generateSummary } from './summary';
+import { Holding } from './holdings';
 
 export async function login(username: string, password: string) {
   const res = await fetchGraphQL(
@@ -137,12 +138,13 @@ export async function getPortfolioReturns(
 
 export async function getPortfolioHoldingsDetail(
   dates?: string[],
+  holding_details: boolean = true,
   id: string = 'hk_vc0_mom'
 ) {
   const { data } = await fetchGraphQL(
     `
-  query PortfolioHoldingsDetail($id: String!, $dates: [String]) {
-    portfolio_holidings_detail(id: $id, dates: $dates) {
+  query PortfolioHoldingsDetail($id: String!, $dates: [String], $holding_details: Boolean) {
+    portfolio_holidings_detail(id: $id, dates: $dates, holding_details: $holding_details) {
       date
       ticker
       name
@@ -163,27 +165,9 @@ export async function getPortfolioHoldingsDetail(
     }
   }`,
     'PortfolioHoldingsDetail',
-    { id, dates }
+    { id, dates, holding_details }
   );
-  return data.portfolio_holidings_detail as {
-    date: string;
-    ticker: string;
-    name: string;
-    industry: string;
-    fret: number | null;
-    fret_1m: number | null;
-    fret_2m: number | null;
-    fret_3m: number | null;
-    fret_4m: number | null;
-    fret_5m: number | null;
-    fret_6m: number | null;
-    fret_7m: number | null;
-    fret_8m: number | null;
-    fret_9m: number | null;
-    fret_10m: number | null;
-    fret_11m: number | null;
-    fret_12m: number | null;
-  }[];
+  return data.portfolio_holidings_detail as Holding[];
 }
 
 export async function getPortfolioMetrics(id: string = 'hk_vc0_mom') {
