@@ -26,7 +26,13 @@ function layout(row: number, col: number): EChartsOption {
   const xAxis: EChartsOption['xAxis'] = arr.map((_, i) => ({
     show: true,
     type: 'category',
-    gridIndex: i
+    boundaryGap: false,
+    gridIndex: i,
+    axisLabel: {
+      formatter: (value) => format(new Date(value), 'yyyy-MM'),
+      // interval: 2,
+      rotate: 30
+    }
   }));
   const yAxis: EChartsOption['yAxis'] = arr.map((_, i) => ({
     show: true,
@@ -57,11 +63,14 @@ function generateOptions(data: Holding[]): EChartsOption {
     },
     ...l,
     title: group.map(([date, _item], index) => ({
-      text: format(new Date(date), 'yyyy-MM-dd'),
+      text: format(new Date(date), 'yyyy-MM'),
       textAlign: 'center',
+      textStyle: {
+        fontSize: 14
+      },
       left:
         parseFloat(grid[index].left) + parseFloat(grid[index].width) / 2 + '%',
-      top: parseFloat(grid[index].top) - 5 + '%'
+      top: parseFloat(grid[index].top) - 4 + '%'
     })),
     series: group.flatMap(([_, item], index) =>
       item.map((i) => ({
@@ -76,7 +85,9 @@ function generateOptions(data: Holding[]): EChartsOption {
 }
 
 export default function HoldingLine({ data }: { data: Holding[] }) {
-  const option = generateOptions(data);
+  const option = generateOptions(
+    data.filter((i) => ['基准', '策略'].includes(i.name))
+  );
 
   return <Chart option={option} notMerge className="min-h-[680px]" />;
 }

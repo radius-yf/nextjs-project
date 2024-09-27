@@ -75,9 +75,7 @@ export default async function Holdings() {
           </Table>
         </ChartCard>
         <ChartCard title="Detail">
-          <HoldingLine
-            data={detail.filter((i) => ['基准', '策略'].includes(i.name))}
-          />
+          <HoldingLine data={detail} />
         </ChartCard>
       </div>
     </PageContainer>
