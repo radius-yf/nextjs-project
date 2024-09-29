@@ -29,7 +29,6 @@ const option: EChartsOption = {
   dataZoom: [
     {
       type: 'inside',
-      // start: 80,
       minValueSpan: 30
     },
     {
@@ -59,7 +58,6 @@ export function LineChart({
     if (!data) return undefined;
     return translate(data, fmt).map(([name, data]) => ({
       type: 'line',
-      symbol: 'none',
       name,
       data
     }));
