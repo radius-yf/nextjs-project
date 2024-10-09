@@ -71,3 +71,57 @@ export function LineChart({
     />
   );
 }
+
+const simpleOption: EChartsOption = {
+  xAxis: {
+    type: 'category',
+    boundaryGap: false,
+    axisPointer: {
+      type: 'line'
+    }
+  },
+  yAxis: {
+    type: 'value',
+    axisLabel: {
+      formatter: '{value}%'
+    },
+    axisPointer: {
+      show: false
+    }
+  },
+  tooltip: {
+    trigger: 'axis',
+    valueFormatter: (value) => `${Number(value).toFixed(2)}%`
+  }
+};
+export function SimpleLineChart({
+  title,
+  data
+}: {
+  title?: string;
+  data?: {
+    id: string;
+    date: string;
+    value: number;
+  }[];
+}) {
+  const series: EChartsOption['series'] = useMemo(() => {
+    if (!data) return undefined;
+    return translate(data).map(([name, data]) => ({
+      type: 'line',
+      name,
+      data
+    }));
+  }, [data]);
+  return (
+    <Chart
+      option={{
+        ...simpleOption,
+        title: title ? { text: title, left: 'center' } : undefined,
+        series
+      }}
+      notMerge
+      className="h-[260px]"
+    />
+  );
+}

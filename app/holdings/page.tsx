@@ -1,6 +1,7 @@
 import { getPortfolioHoldings, getPortfolioHoldingsDetail } from '@/api/api';
+import { genDataByHolding } from '@/api/holdings';
 import { ChartCard } from '@/components/charts/card';
-import HoldingLine from '@/components/charts/holding-line';
+import { SimpleLineChart } from '@/components/charts/line';
 import PageContainer from '@/components/layout/page-container';
 import {
   Table,
@@ -11,6 +12,7 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { H1, P } from '@/components/ui/typography';
+import { groupBy } from '@/lib/data-conversion';
 import { format } from 'date-fns/esm';
 import Link from 'next/link';
 
@@ -75,7 +77,22 @@ export default async function Holdings() {
           </Table>
         </ChartCard>
         <ChartCard title="Detail">
-          <HoldingLine data={detail} />
+          <div className="grid grid-cols-4 gap-x-6">
+            {groupBy(
+              detail
+                .filter((i) => ['基准', '策略'].includes(i.name))
+                .flatMap((i) => genDataByHolding(i)),
+              'group'
+            )
+              .reverse()
+              .map(([date, item]) => (
+                <SimpleLineChart
+                  key={date}
+                  title={format(new Date(date), 'yyyy-MM')}
+                  data={item}
+                />
+              ))}
+          </div>
         </ChartCard>
       </div>
     </PageContainer>

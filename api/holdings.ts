@@ -1,4 +1,4 @@
-import { add, addMonths, format } from 'date-fns/esm';
+import { addMonths, format } from 'date-fns/esm';
 
 export interface Holding {
   date: string;
@@ -37,5 +37,14 @@ export function getFret(data: Holding) {
     [format(addMonths(date, 11), 'yyyy-MM-dd'), data.fret_12m]
   ]
     .filter((i): i is [string, number] => i[1] !== null)
-    .map(([date, value]) => [date, value * 100]);
+    .map(([date, value]) => [date, value] as [string, number]);
+}
+
+export function genDataByHolding(data: Holding) {
+  return getFret(data).map(([date, value]) => ({
+    id: data.name,
+    group: data.date,
+    date,
+    value
+  }));
 }
