@@ -1,0 +1,154 @@
+import { format } from 'date-fns';
+import { fetchGraphQL } from './fetch';
+import { groupBy } from '@/lib/data-conversion';
+
+/**
+ * 实盘id列表
+ */
+export async function getReportOnlineIdlist() {
+  const { data } = await fetchGraphQL(
+    `
+    query ReportOnlineIdlist {
+      v2_report_online_idlist {
+        id
+        name: value
+      }
+    }`,
+    'ReportOnlineIdlist'
+  );
+  return data.v2_report_online_idlist as { id: string; name: string }[];
+}
+
+/**
+ * 回测参数
+ */
+export async function getBacktestFilter() {
+  const { data } = await fetchGraphQL(
+    `
+    query BacktestFilter {
+      v2_backtest_filter
+    }`,
+    'BacktestFilter'
+  );
+  return data.v2_backtest_filter as string;
+}
+
+/**
+ * 回测任务状态
+ * @param pid_list 回测id
+ */
+export async function getBacktestGetMultiProcessStatus(pid_list: string[]) {
+  const { data } = await fetchGraphQL(
+    `
+    query BacktestGetMultiProcessStatus($pid_list: [String!]!) {
+      v2_backtest_get_multi_process_status(pid_list: $pid_list)
+    }`,
+    'BacktestGetMultiProcessStatus',
+    { pid_list }
+  );
+  return data.v2_backtest_get_multi_process_status as string;
+}
+
+export interface BacktestParams {
+  region: string;
+  start_date: string;
+  end_date: string;
+  stock_filter: string;
+  rf: string;
+  strategy: string;
+  position: string;
+  industry: string[];
+  stock_count: number;
+  holding_time: string;
+}
+/**
+ * 创建回测任务
+ * @param bt_args 回测参数
+ * @returns id
+ */
+export async function backtestCreateProcess(bt_args: BacktestParams) {
+  const { data } = await fetchGraphQL(
+    `
+    query BacktestCreateProcess($bt_args: String!) {
+      v2_backtest_create_process(bt_args: $bt_args)
+    }`,
+    'BacktestCreateProcess',
+    { bt_args: JSON.stringify(bt_args) }
+  );
+  return data.v2_backtest_create_process as string;
+}
+
+/**
+ * 投资组合累计收益率(vs基准数据)
+ */
+export async function getReportPortfolioValues(
+  id: string,
+  start_date?: Date,
+  end_date?: Date,
+  return_type: '' | 'match volatility' | 'log' = '',
+  freq: string = 'd'
+) {
+  const { data } = await fetchGraphQL(
+    `
+    query ReportPortfolioValues($id: String!, $return_type: String, $start_date: timestamp, $end_date: timestamp,$freq:String) {
+      v2_report_portfolio_values(id: $id, return_type: $return_type, start_date: $start_date, end_date: $end_date,freq: $freq) {
+        id
+        date
+        value
+      }
+    }`,
+    'ReportPortfolioValues',
+    {
+      id,
+      return_type,
+      start_date: start_date ? format(start_date, 'yyyy-MM-dd') : undefined,
+      end_date: end_date ? format(end_date, 'yyyy-MM-dd') : undefined,
+      freq
+    }
+  );
+  return data.v2_report_portfolio_values as {
+    id: string;
+    date: string;
+    value: number;
+  }[];
+}
+
+/**
+ * 投资组合收益统计指标(key performance metrics)
+ */
+export async function getReportPortfolioMetrics(
+  id: string,
+  start_date?: Date,
+  end_date?: Date
+) {
+  const { data } = await fetchGraphQL(
+    `
+    query ReportPortfolioMetrics($id: String!, $start_date: timestamp, $end_date: timestamp) {
+      v2_report_portfolio_metrics(id: $id, start_date: $start_date, end_date: $end_date) {
+        id
+        key
+        value
+      }
+    }`,
+    'ReportPortfolioMetrics',
+    {
+      id,
+      start_date: start_date ? format(start_date, 'yyyy-MM-dd') : undefined,
+      end_date: end_date ? format(end_date, 'yyyy-MM-dd') : undefined
+    }
+  );
+  return groupBy(
+    data.v2_report_portfolio_metrics as {
+      id: string;
+      key: string;
+      value: string;
+    }[],
+    'id'
+  ).map(
+    ([id, val]) =>
+      ({
+        id,
+        ...val?.reduce((acc, { key, value }) => ({ ...acc, [key]: value }), {})
+      }) as Record<string, string> & { id: string }
+  );
+}

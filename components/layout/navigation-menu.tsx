@@ -6,8 +6,12 @@ import { UserNav } from './user-nav';
 
 const menus = [
   {
+    path: '/nav',
+    name: '导航'
+  },
+  {
     path: '/home',
-    name: '港股价值趋势策略'
+    name: '策略首页'
   },
   {
     path: '/analysis',
@@ -42,7 +46,7 @@ export function Navigation() {
           <li
             key={menu.path}
             data-active={menu.path === activeMenu?.path}
-            className='text-primary-foreground/50 data-[active=true]:text-primary-foreground'
+            className="text-primary-foreground/50 data-[active=true]:text-primary-foreground"
           >
             <Link href={menu.path}>{menu.name}</Link>
           </li>

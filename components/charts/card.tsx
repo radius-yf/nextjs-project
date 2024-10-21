@@ -3,7 +3,7 @@ import { forwardRef, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 interface ChartCardProps {
-  title: string;
+  title?: string;
   options?: (string | { name: string; value: string })[];
   initialValue?: string;
   children?: React.ReactNode;
@@ -12,19 +12,19 @@ interface ChartCardProps {
 
 export const ChartCard = forwardRef<HTMLDivElement, ChartCardProps>(
   ({ title, options, initialValue, children, onChange }, ref) => {
-    const [active, setActive] = useState(initialValue);
     const option = useMemo(() => {
       if (!options) return [];
       return options.map((i) =>
         typeof i === 'string' ? { name: i, value: i } : i
       );
     }, [options]);
+    const [active, setActive] = useState(initialValue ?? option?.[0]?.value);
     return (
       <Card ref={ref}>
         <CardHeader>
-          <CardTitle>{title}</CardTitle>
+          {title && <CardTitle>{title}</CardTitle>}
           {option && option.length ? (
-            <div className="mr-6 flex">
+            <div className="mx-6 flex">
               {option.map((i) => (
                 <button
                   key={i.value}

@@ -19,9 +19,7 @@ import * as z from 'zod';
 import { createHash } from 'crypto';
 import { useRouter } from 'nextjs-toploader/app';
 import { toast } from '../ui/use-toast';
-const md5 = function (str: string) {
-  return createHash('md5').update(str).digest('hex');
-};
+const md5 = (str: string) => createHash('md5').update(str).digest('hex');
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Enter a valid email address' }),

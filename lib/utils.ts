@@ -4,3 +4,24 @@ import { twMerge } from 'tailwind-merge';
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
+
+export function formatFloat(n: number, digits = 2) {
+  return parseFloat(n.toFixed(digits));
+}
+
+export function debounce<T extends (...args: Parameters<T>) => ReturnType<T>>(
+  func: T,
+  wait: number = 100
+): (...args: Parameters<T>) => void {
+  let timeout: number | undefined;
+
+  return function (...args: Parameters<T>) {
+    if (timeout !== undefined) {
+      clearTimeout(timeout);
+    }
+
+    timeout = window.setTimeout(() => {
+      func(...args);
+    }, wait);
+  };
+}

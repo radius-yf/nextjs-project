@@ -2,9 +2,10 @@ import { useCallback, useEffect, useState } from 'react';
 
 export function useAsyncReducer<T extends unknown[], R>(
   callback: (...args: T) => Promise<R>,
-  args?: T
+  args?: T,
+  initialState?: R
 ) {
-  const [data, setData] = useState<R>();
+  const [data, setData] = useState<R | undefined>(initialState);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error>();
 
@@ -22,7 +23,7 @@ export function useAsyncReducer<T extends unknown[], R>(
   }, []);
 
   useEffect(() => {
-    if (args) {
+    if (args && !initialState) {
       fetchData(...args);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

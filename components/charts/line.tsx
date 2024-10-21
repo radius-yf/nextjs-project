@@ -1,8 +1,10 @@
 'use client';
 import { EChartsOption } from 'echarts';
-import { useMemo } from 'react';
+import EChartsReact from 'echarts-for-react';
+import { useMemo, useRef, useState } from 'react';
 import Chart from './chart';
 import { translate } from './chart-util';
+import { debounce } from '@/lib/utils';
 
 const option: EChartsOption = {
   grid: {
@@ -40,12 +42,7 @@ const option: EChartsOption = {
     valueFormatter: (value) => `${Number(value).toFixed(2)}%`
   }
 };
-
-export function LineChart({
-  data,
-  fmt = 'yyyy-MM-dd',
-  loading
-}: {
+interface LineChartProps {
   data?: {
     id: string;
     date: string;
@@ -53,7 +50,12 @@ export function LineChart({
   }[];
   fmt?: string | null;
   loading?: boolean;
-}) {
+}
+export function LineChart({
+  data,
+  fmt = 'yyyy-MM-dd',
+  loading
+}: LineChartProps) {
   const series: EChartsOption['series'] = useMemo(() => {
     if (!data) return undefined;
     return translate(data, fmt).map(([name, data]) => ({
@@ -68,6 +70,59 @@ export function LineChart({
       showLoading={loading}
       notMerge={true}
       className="min-h-[500px]"
+    />
+  );
+}
+
+export function RangeLineChart({
+  data,
+  fmt = 'yyyy-MM-dd',
+  loading
+}: LineChartProps) {
+  const series = useMemo(() => {
+    if (!data) return undefined;
+    return translate(data, fmt).map(([name, data]) => ({
+      type: 'line',
+      name,
+      data
+    }));
+  }, [data, fmt]);
+  const ref = useRef<EChartsReact>(null);
+
+  return (
+    <Chart
+      ref={ref}
+      option={{ ...option, series }}
+      showLoading={loading}
+      className="min-h-[500px]"
+      notMerge={true}
+      onEvents={{
+        datazoom: debounce((param: { start: number }) => {
+          const startIndex = Math.floor(
+            (param.start / 100) * (series?.[0].data.length ?? 0)
+          );
+          ref.current?.getEchartsInstance().setOption(
+            {
+              series:
+                startIndex === 0
+                  ? series
+                  : series?.map((s) => {
+                      const startValue = s.data.at(startIndex - 1)?.[1];
+                      return startValue === undefined
+                        ? s
+                        : {
+                            ...s,
+                            data: s.data.map(([d, p]) => [
+                              d,
+                              (p + 1) / (startValue + 1) - 1
+                            ])
+                          };
+                    })
+            },
+            false
+          );
+        })
+      }}
     />
   );
 }
