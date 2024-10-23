@@ -20,6 +20,28 @@ export async function getReportOnlineIdlist() {
 }
 
 /**
+ * 获取回测历史配置
+ */
+export async function getBacktestGetConfig() {
+  const { data } = await fetchGraphQL(
+    `
+    query BacktestGetConfig {
+      v2_backtest_get_config {
+        bt_id
+        data
+        update_time
+      }
+    }`,
+    'BacktestGetConfig'
+  );
+  return data.v2_backtest_get_config as {
+    bt_id: string;
+    data: string;
+    update_time: string;
+  }[];
+}
+
+/**
  * 回测参数
  */
 export async function getBacktestFilter() {
@@ -151,4 +173,68 @@ export async function getReportPortfolioMetrics(
         ...val?.reduce((acc, { key, value }) => ({ ...acc, [key]: value }), {})
       }) as Record<string, string> & { id: string }
   );
+}
+
+/**
+ * 投资组合关键指标KeyRatios(vs 市场)
+ */
+export async function getReportPortfolioKeyRatios(
+  id: string,
+  start_date?: Date,
+  end_date?: Date
+) {
+  const { data } = await fetchGraphQL(
+    `
+    query ReportPortfolioKeyRatios($id: String!, $start_date: timestamp, $end_date: timestamp) {
+      v2_report_portfolio_keyratios(id: $id, end_date: $end_date) {
+        key
+        low
+        mean
+        up
+        value
+      }
+    }`,
+    'ReportPortfolioKeyRatios',
+    {
+      id,
+      start_date: start_date ? format(start_date, 'yyyy-MM-dd') : undefined,
+      end_date: end_date ? format(end_date, 'yyyy-MM-dd') : undefined
+    }
+  );
+  return data.v2_report_portfolio_keyratios as {
+    key: string;
+    low: number;
+    mean: number;
+    up: number;
+    value: number;
+  };
+}
+
+/**
+ * 投资组合持仓行业市值百分比
+ */
+export async function getReportPortfolioHoldingsIndustry(
+  id: string,
+  start_date?: Date,
+  end_date?: Date
+) {
+  const { data } = await fetchGraphQL(
+    `
+    query ReportPortfolioHoldingsIndustry($id: String!, $start_date: timestamp, $end_date: timestamp) {
+      v2_report_portfolio_holdings_industry(id: $id, end_date: $end_date) {
+        id
+        value
+      }
+    }`,
+    'ReportPortfolioHoldingsIndustry',
+    {
+      id,
+      start_date: start_date ? format(start_date, 'yyyy-MM-dd') : undefined,
+      end_date: end_date ? format(end_date, 'yyyy-MM-dd') : undefined
+    }
+  );
+  return data.v2_report_portfolio_holdings_industry as {
+    id: string;
+    value: number;
+  }[];
 }

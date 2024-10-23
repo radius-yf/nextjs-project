@@ -1,10 +1,10 @@
 'use client';
+import { debounce } from '@/lib/utils';
 import { EChartsOption } from 'echarts';
 import EChartsReact from 'echarts-for-react';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 import Chart from './chart';
 import { translate } from './chart-util';
-import { debounce } from '@/lib/utils';
 
 const option: EChartsOption = {
   grid: {
@@ -20,6 +20,12 @@ const option: EChartsOption = {
   },
   yAxis: {
     type: 'value',
+    axisLine: {
+      show: false
+    },
+    axisTick: {
+      show: false
+    },
     axisLabel: {
       formatter: '{value}%'
     },

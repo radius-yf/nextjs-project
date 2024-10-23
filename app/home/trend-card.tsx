@@ -41,7 +41,7 @@ export const TrendCard = forwardRef<HTMLDivElement>((_, ref) => {
       title="策略与恒指走势对比图"
       options={['6M', '1Y', '3Y', '5Y', 'ALL']}
       initialValue="ALL"
-      onChange={(value) => fetchData(value)}
+      onTabChange={(value) => fetchData(value)}
     >
       <LineChart data={data} loading={loading} />
     </ChartCard>

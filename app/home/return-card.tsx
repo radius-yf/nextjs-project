@@ -16,7 +16,7 @@ export const ReturnCard = forwardRef<HTMLDivElement>((_, ref) => {
       title="策略与恒指月度回报图"
       options={['M', 'Y']}
       initialValue="M"
-      onChange={(value) => fetchData(value)}
+      onTabChange={(value) => fetchData(value)}
     >
       <BarChart data={data} />
     </ChartCard>

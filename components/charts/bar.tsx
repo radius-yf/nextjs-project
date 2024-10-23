@@ -3,6 +3,7 @@ import { EChartsOption } from 'echarts';
 import { useMemo } from 'react';
 import { translate } from './chart-util';
 import Chart from './chart';
+import { formatFloat } from '@/lib/utils';
 
 const option: EChartsOption = {
   grid: {
@@ -59,10 +60,10 @@ export function BarChart({
     value: number;
   }[];
 }) {
-  const options = useMemo(() => {
+  const series = useMemo(() => {
     if (!data) return undefined;
 
-    const series = translate(data).map(
+    return translate(data).map(
       ([name, data]) =>
         ({
           type: 'bar',
@@ -72,7 +73,63 @@ export function BarChart({
           barCategoryGap: '50%'
         }) as EChartsOption['series']
     );
-    return { ...option, series };
   }, [data]);
-  return <Chart option={options ?? {}} notMerge className="min-h-[500px]" />;
+  return (
+    <Chart option={{ ...option, series }} notMerge className="min-h-[500px]" />
+  );
+}
+
+const option2: EChartsOption = {
+  grid: {
+    left: 280,
+    right: 12
+  },
+  xAxis: {
+    type: 'value'
+  },
+  yAxis: {
+    type: 'category',
+    offset: 240,
+    axisLabel: {
+      align: 'left'
+    },
+    axisPointer: {
+      type: 'shadow'
+    }
+  },
+  tooltip: {
+    trigger: 'axis',
+    valueFormatter: (value) => `${formatFloat((value as number) * 100)}%`
+  }
+};
+export function InvestmentDistribution({
+  data
+}: {
+  data: {
+    id: string;
+    value: number;
+  }[];
+}) {
+  const series = useMemo(() => {
+    if (!data) return undefined;
+    return {
+      type: 'bar',
+      label: {
+        show: true,
+        position: 'left',
+        formatter: ({ value: [val] }: { value: [number, string] }) =>
+          `${formatFloat(val * 100)}%`
+      },
+      data: data.reverse().map(({ id, value }) => [
+        value,
+        id
+        // `${id} ${formatFloat(value * 100)
+        //   .toString()
+        //   .padStart(12, ' ')}%`
+      ])
+    };
+  }, [data]);
+  return (
+    <Chart option={{ ...option2, series }} notMerge className="min-h-[500px]" />
+  );
 }

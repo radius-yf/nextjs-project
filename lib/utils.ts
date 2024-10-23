@@ -13,14 +13,14 @@ export function debounce<T extends (...args: Parameters<T>) => ReturnType<T>>(
   func: T,
   wait: number = 100
 ): (...args: Parameters<T>) => void {
-  let timeout: number | undefined;
+  let timeout: ReturnType<typeof setTimeout> | undefined;
 
   return function (...args: Parameters<T>) {
     if (timeout !== undefined) {
       clearTimeout(timeout);
     }
 
-    timeout = window.setTimeout(() => {
+    timeout = setTimeout(() => {
       func(...args);
     }, wait);
   };

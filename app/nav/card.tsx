@@ -3,22 +3,12 @@ import { RangeLineChart } from '@/components/charts/line';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatFloat } from '@/lib/utils';
 import { useRouter } from 'nextjs-toploader/app';
-function isPositiveNumber(value: string | number | undefined): boolean {
-  if (value === undefined) {
-    return false;
-  }
-  if (typeof value === 'number') {
-    return value > 0;
-  }
-  const num = parseFloat(value);
-  return !isNaN(num) && num > 0;
-}
+
 export function NavCard({
   id,
   name,
   values,
-  metrics,
-  range
+  metrics
 }: {
   id: string;
   name: string;
@@ -28,18 +18,8 @@ export function NavCard({
     value: number;
   }[];
   metrics: (Record<string, string> & { id: string })[];
-  range: [Date, Date];
 }) {
   const router = useRouter();
-  // const { data, fetchData } = useAsyncReducer(
-  //   ({ from, to }: DateRange) =>
-  //     Promise.all([
-  //       getReportPortfolioValues(id, from, to),
-  //       getReportPortfolioMetrics(id, from, to)
-  //     ]).then(([values, metrics]) => ({ values, metrics })),
-  //   undefined,
-  //   { values, metrics }
-  // );
   const hsi = metrics.find((m) => m.id === 'hsi');
   const metric = metrics.find((m) => m.id !== 'hsi');
   return (
@@ -111,6 +91,16 @@ export function NavCard({
   );
 }
 
+function isPositiveNumber(value: string | number | undefined): boolean {
+  if (value === undefined) {
+    return false;
+  }
+  if (typeof value === 'number') {
+    return value > 0;
+  }
+  const num = parseFloat(value);
+  return !isNaN(num) && num > 0;
+}
 function Pairs({
   name,
   value,
