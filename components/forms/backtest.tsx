@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '../ui/select';
+import { backtestCreateProcess } from '@/api/api-v2';
 
 interface BacktestParams {
   region: string[];
@@ -52,7 +53,7 @@ const formSchema = z.object({
   rf: z.string(),
   strategy: z.string(),
   position: z.string(),
-  stock_count: z.coerce.number(),
+  stock_count: z.coerce.number().min(1),
   holding_time: z.string()
 });
 
@@ -65,7 +66,13 @@ const BacktestForm = forwardRef(
       resolver: zodResolver(formSchema),
       defaultValues: {
         region: data.region[0],
-        industry: data.industry
+        industry: data.industry,
+        stock_filter: data.stock_filter[data.region[0]][0],
+        rf: data.rf[0],
+        strategy: data.strategy[0],
+        position: data.position[0],
+        stock_count: data.stock_count,
+        holding_time: data.holding_time[0]
       }
     });
     const region = useWatch({
@@ -161,7 +168,7 @@ const BacktestForm = forwardRef(
               <FormItem className="items-center">
                 <FormLabel>Number of positions</FormLabel>
                 <FormControl>
-                  <Input type="number" {...field} />
+                  <Input type="number" {...field} min={1} />
                 </FormControl>
               </FormItem>
             )}
@@ -203,7 +210,8 @@ export function BacktestFormDialog({ data }: { data: string }) {
           <Button
             type="submit"
             onClick={() => {
-              ref.current?.handleSubmit(() => {
+              ref.current?.handleSubmit((val: any) => {
+                backtestCreateProcess(val);
                 setOpen(false);
               })();
             }}

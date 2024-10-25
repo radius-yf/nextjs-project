@@ -1,6 +1,7 @@
 import {
   getBacktestFilter,
   getBacktestGetConfig,
+  getBacktestGetMultiProcessStatus,
   getReportOnlineIdlist,
   getReportPortfolioMetrics,
   getReportPortfolioValues
@@ -14,19 +15,33 @@ async function getData() {
     getReportOnlineIdlist(),
     getBacktestGetConfig()
   ]);
+  const btStatus = await getBacktestGetMultiProcessStatus(
+    backtest.map((b) => b.bt_id)
+  );
   return Promise.all(
-    ids
-      .concat(backtest.map((b) => ({ id: b.bt_id, name: b.bt_id })))
+    (ids as { id: string; name: string; status?: string }[])
+      .concat(btStatus.map((b) => ({ id: b[0], name: b[0], status: b[1] })))
       .map((item) =>
-        Promise.all([
-          getReportPortfolioValues(item.id),
-          getReportPortfolioMetrics(item.id)
-        ]).then(([values, metrics]) => ({
-          id: item.id,
-          name: item.name,
-          values,
-          metrics
-        }))
+        !item.status || item.status === 'done'
+          ? Promise.all([
+              getReportPortfolioValues(item.id),
+              getReportPortfolioMetrics(item.id)
+            ]).then(([values, metrics]) => ({
+              id: item.id,
+              name: item.name,
+              values,
+              metrics,
+              status: 'done',
+              isBacktest: item.status !== undefined
+            }))
+          : Promise.resolve({
+              id: item.id,
+              name: item.name,
+              values: [],
+              metrics: [],
+              status: item.status,
+              isBacktest: true
+            })
       )
   );
 }

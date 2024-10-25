@@ -1,6 +1,7 @@
-import { format } from 'date-fns';
+import { format } from 'date-fns/esm';
 import { fetchGraphQL } from './fetch';
 import { groupBy } from '@/lib/data-conversion';
+import { zip } from '@/lib/utils';
 
 /**
  * 实盘id列表
@@ -68,7 +69,7 @@ export async function getBacktestGetMultiProcessStatus(pid_list: string[]) {
     'BacktestGetMultiProcessStatus',
     { pid_list }
   );
-  return data.v2_backtest_get_multi_process_status as string;
+  return zip(pid_list, data.v2_backtest_get_multi_process_status as string[]);
 }
 
 export interface BacktestParams {
@@ -105,8 +106,8 @@ export async function backtestCreateProcess(bt_args: BacktestParams) {
  */
 export async function getReportPortfolioValues(
   id: string,
-  start_date?: Date,
-  end_date?: Date,
+  start_date?: Date | string,
+  end_date?: Date | string,
   return_type: '' | 'match volatility' | 'log' = '',
   freq: string = 'd'
 ) {
@@ -123,8 +124,10 @@ export async function getReportPortfolioValues(
     {
       id,
       return_type,
-      start_date: start_date ? format(start_date, 'yyyy-MM-dd') : undefined,
-      end_date: end_date ? format(end_date, 'yyyy-MM-dd') : undefined,
+      start_date: start_date
+        ? format(new Date(start_date), 'yyyy-MM-dd')
+        : undefined,
+      end_date: end_date ? format(new Date(end_date), 'yyyy-MM-dd') : undefined,
       freq
     }
   );
@@ -140,8 +143,8 @@ export async function getReportPortfolioValues(
  */
 export async function getReportPortfolioMetrics(
   id: string,
-  start_date?: Date,
-  end_date?: Date
+  start_date?: Date | string,
+  end_date?: Date | string
 ) {
   const { data } = await fetchGraphQL(
     `
@@ -155,8 +158,10 @@ export async function getReportPortfolioMetrics(
     'ReportPortfolioMetrics',
     {
       id,
-      start_date: start_date ? format(start_date, 'yyyy-MM-dd') : undefined,
-      end_date: end_date ? format(end_date, 'yyyy-MM-dd') : undefined
+      start_date: start_date
+        ? format(new Date(start_date), 'yyyy-MM-dd')
+        : undefined,
+      end_date: end_date ? format(new Date(end_date), 'yyyy-MM-dd') : undefined
     }
   );
   return groupBy(
@@ -180,8 +185,8 @@ export async function getReportPortfolioMetrics(
  */
 export async function getReportPortfolioKeyRatios(
   id: string,
-  start_date?: Date,
-  end_date?: Date
+  start_date?: Date | string,
+  end_date?: Date | string
 ) {
   const { data } = await fetchGraphQL(
     `
@@ -197,8 +202,10 @@ export async function getReportPortfolioKeyRatios(
     'ReportPortfolioKeyRatios',
     {
       id,
-      start_date: start_date ? format(start_date, 'yyyy-MM-dd') : undefined,
-      end_date: end_date ? format(end_date, 'yyyy-MM-dd') : undefined
+      // start_date: start_date
+      //   ? format(new Date(start_date), 'yyyy-MM-dd')
+      //   : undefined,
+      end_date: end_date ? format(new Date(end_date), 'yyyy-MM-dd') : undefined
     }
   );
   return data.v2_report_portfolio_keyratios as {
@@ -215,8 +222,8 @@ export async function getReportPortfolioKeyRatios(
  */
 export async function getReportPortfolioHoldingsIndustry(
   id: string,
-  start_date?: Date,
-  end_date?: Date
+  start_date?: Date | string,
+  end_date?: Date | string
 ) {
   const { data } = await fetchGraphQL(
     `
@@ -229,8 +236,10 @@ export async function getReportPortfolioHoldingsIndustry(
     'ReportPortfolioHoldingsIndustry',
     {
       id,
-      start_date: start_date ? format(start_date, 'yyyy-MM-dd') : undefined,
-      end_date: end_date ? format(end_date, 'yyyy-MM-dd') : undefined
+      // start_date: start_date
+      //   ? format(new Date(start_date), 'yyyy-MM-dd')
+      //   : undefined,
+      end_date: end_date ? format(new Date(end_date), 'yyyy-MM-dd') : undefined
     }
   );
   return data.v2_report_portfolio_holdings_industry as {

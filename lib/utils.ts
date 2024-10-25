@@ -25,3 +25,14 @@ export function debounce<T extends (...args: Parameters<T>) => ReturnType<T>>(
     }, wait);
   };
 }
+
+export function zip<T, U>(arr1: T[], arr2: U[]): Array<[T, U]> {
+  const length = Math.min(arr1.length, arr2.length);
+  const result: Array<[T, U]> = [];
+
+  for (let i = 0; i < length; i++) {
+    result.push([arr1[i], arr2[i]]);
+  }
+
+  return result;
+}

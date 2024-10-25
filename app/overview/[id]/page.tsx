@@ -11,11 +11,25 @@ import { LineChart } from '@/components/charts/line';
 import { PieChart } from '@/components/charts/pie';
 import PageContainer from '@/components/layout/page-container';
 
-export default async function Overview({ params }: { params: { id: string } }) {
+export default async function Overview({
+  params,
+  searchParams
+}: {
+  params: { id: string };
+  searchParams: { start: string; end: string };
+}) {
   const [keyRatios, industry, values, summary] = await Promise.all([
-    getReportPortfolioKeyRatios(params.id),
-    getReportPortfolioHoldingsIndustry(params.id),
-    getReportPortfolioValues(params.id),
+    getReportPortfolioKeyRatios(
+      params.id,
+      searchParams.start,
+      searchParams.end
+    ),
+    getReportPortfolioHoldingsIndustry(
+      params.id,
+      searchParams.start,
+      searchParams.end
+    ),
+    getReportPortfolioValues(params.id, searchParams.start, searchParams.end),
     getPortfolioSummary(params.id)
   ]);
 
@@ -33,7 +47,7 @@ export default async function Overview({ params }: { params: { id: string } }) {
         <ChartCard title="Key Ratios">
           <KeyRatios data={keyRatios} />
         </ChartCard>
-        <ChartCard title="Key Ratios">
+        <ChartCard>
           <InvestmentDistribution data={industry} />
         </ChartCard>
         <ChartCard title="总策略加权指标">
