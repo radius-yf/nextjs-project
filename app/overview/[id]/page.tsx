@@ -13,23 +13,15 @@ import PageContainer from '@/components/layout/page-container';
 
 export default async function Overview({
   params,
-  searchParams
+  searchParams: p
 }: {
   params: { id: string };
   searchParams: { start: string; end: string };
 }) {
   const [keyRatios, industry, values, summary] = await Promise.all([
-    getReportPortfolioKeyRatios(
-      params.id,
-      searchParams.start,
-      searchParams.end
-    ),
-    getReportPortfolioHoldingsIndustry(
-      params.id,
-      searchParams.start,
-      searchParams.end
-    ),
-    getReportPortfolioValues(params.id, searchParams.start, searchParams.end),
+    getReportPortfolioKeyRatios(params.id, p.start, p.end),
+    getReportPortfolioHoldingsIndustry(params.id, p.start, p.end),
+    getReportPortfolioValues(params.id, p.start, p.end),
     getPortfolioSummary(params.id)
   ]);
 

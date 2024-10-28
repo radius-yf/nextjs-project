@@ -214,7 +214,7 @@ export async function getReportPortfolioKeyRatios(
     mean: number;
     up: number;
     value: number;
-  };
+  }[];
 }
 
 /**

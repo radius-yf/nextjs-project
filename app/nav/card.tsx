@@ -3,6 +3,7 @@ import { RangeLineChart } from '@/components/charts/line';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatFloat } from '@/lib/utils';
+import { ChevronsRight, Trash2 } from 'lucide-react';
 import { useRouter } from 'nextjs-toploader/app';
 import { stringify } from 'qs';
 import { useRef } from 'react';
@@ -35,24 +36,27 @@ export function NavCard({
     <Card>
       <CardHeader className="flex-wrap">
         <CardTitle>{name}</CardTitle>
-        <div className="pr-4">
+        <div className="flex items-center gap-1 pr-4">
           {isBacktest && (
             <Button
-              className="text-red-500 hover:text-red-600"
-              variant="ghost"
-              size="sm"
+              title="delete"
+              className="text-destructive hover:text-destructive"
+              variant="outline"
+              size="icon-sm"
             >
-              Delete
+              <Trash2 />
             </Button>
           )}
           <Button
-            variant="ghost"
-            size="sm"
+            title="jump to details"
+            className="text-primary hover:text-primary"
+            variant="outline"
+            size="icon-sm"
             onClick={() => {
               router.push(`/overview/${id}?${stringify(qs.current)}`);
             }}
           >
-            Details
+            <ChevronsRight size={32} />
           </Button>
         </div>
         {status === 'done' && (
