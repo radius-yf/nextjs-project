@@ -6,7 +6,7 @@ export function useAsyncReducer<T extends unknown[], R>(
   initialState?: R
 ) {
   const [data, setData] = useState<R | undefined>(initialState);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error>();
 
   const fetchData = useCallback(async (...args: T) => {

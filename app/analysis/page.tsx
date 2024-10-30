@@ -5,25 +5,22 @@ import {
   getPortfolioRollingIndicator,
   getPortfolioValues
 } from '@/api/api';
-import { BarChart } from '@/components/charts/bar';
-import { Boxplot } from '@/components/charts/boxplot';
 import { ChartCard } from '@/components/charts/card';
 import { HeatChart } from '@/components/charts/heat';
 import { HistogramChart } from '@/components/charts/histogram';
-import { LineChart } from '@/components/charts/line';
 import PageContainer from '@/components/layout/page-container';
-import { DataTable, ReactTable } from '@/components/tables/table';
+import { TabCard } from '@/components/tab-card';
+import { ReactTable } from '@/components/tables/table';
 import { H1, H4, P } from '@/components/ui/typography';
 import { groupBy } from '@/lib/data-conversion';
 
 export default async function Analysis() {
-  const [values, returnsY, returnsM, beta, volatility, drawdowns, metrics] =
+  const [values, returnsY, returnsM, beta, drawdowns, metrics] =
     await Promise.all([
       getPortfolioValues(),
       getPortfolioReturns('Y'),
       getPortfolioReturns('M'),
       getPortfolioRollingIndicator('beta'),
-      getPortfolioRollingIndicator('volatility'),
       getPortfolioDrawdowns(),
       getPortfolioMetrics()
     ]);
@@ -39,17 +36,71 @@ export default async function Analysis() {
             beatae explicabo iure porro.
           </P>
         </div>
-        <ChartCard title="Cumulative Returns vs Benchmark">
-          <LineChart data={values} />
+        <TabCard
+          title="Cumulative Returns vs Benchmark"
+          options={[
+            { name: 'Normal', value: '' },
+            { name: 'Volatility Matched', value: 'match volatility' }
+          ]}
+          render="LineChart"
+          initialData={{ data: values }}
+          getData={async (val) => {
+            'use server';
+            const data = await getPortfolioValues(
+              undefined,
+              undefined,
+              undefined,
+              val as any
+            );
+            return { data };
+          }}
+        />
+        <ChartCard title="Monthly Returns">
+          <HeatChart data={returnsM} />
         </ChartCard>
-        <ChartCard title="EOY Returns vs Benchmark">
-          <BarChart data={returnsY} />
-        </ChartCard>
+        <TabCard
+          title="Returns vs Benchmark"
+          options={[
+            { name: 'Year', value: 'Y' },
+            { name: 'Month', value: 'M' }
+          ]}
+          render="BarChart"
+          initialData={{ data: returnsY }}
+          getData={async (val) => {
+            'use server';
+            const data = await getPortfolioReturns(val as any);
+            return { data };
+          }}
+        />
         <ChartCard title="Distribution of Monthly Returns">
           <HistogramChart data={returnsM} />
         </ChartCard>
-        <ChartCard title="Monthly Returns">
-          <BarChart data={returnsM} />
+        <TabCard
+          title="Rolling indicator"
+          options={[
+            { name: 'Beta', value: 'beta' },
+            { name: 'Volatility', value: 'volatility' },
+            { name: 'Sharpe', value: 'sharpe' },
+            { name: 'Sortino', value: 'sortino' }
+          ]}
+          render="LineChart"
+          initialData={{ data: beta }}
+          getData={async (val) => {
+            'use server';
+            const data = await getPortfolioRollingIndicator(val as any);
+            return { data };
+          }}
+        />
+        <ChartCard title="Worst 10 Drawdowns">
+          <ReactTable
+            data={drawdowns}
+            columns={[
+              { accessorKey: 'Start', header: 'Started' },
+              { accessorKey: 'End', header: 'Ended' },
+              { accessorKey: 'Drawdown', header: 'Drawdown' },
+              { accessorKey: 'Days', header: 'Days' }
+            ]}
+          />
         </ChartCard>
         <ChartCard title="Key Performance Metrics">
           <div className="columns-4">
@@ -73,9 +124,15 @@ export default async function Analysis() {
               ))}
           </div>
         </ChartCard>
-        {/* <ChartCard title="Cumulative Returns vs Benchmark (Log Scaled)">
-          <LineChart data={[]} />
-        </ChartCard> */}
+        {/* <ChartCard title="Cumulative Returns vs Benchmark">
+          <LineChart data={values} />
+        </ChartCard>
+        <ChartCard title="EOY Returns vs Benchmark">
+          <BarChart data={returnsY} />
+        </ChartCard>
+        <ChartCard title="Monthly Returns">
+          <BarChart data={returnsM} />
+        </ChartCard>
         <ChartCard title="Cumulative Returns vs Benchmark (Volatility Matched)">
           <LineChart data={volatility} />
         </ChartCard>
@@ -95,23 +152,9 @@ export default async function Analysis() {
             />
           </div>
         </ChartCard>
-        <ChartCard title="Worst 10 Drawdowns">
-          <ReactTable
-            data={drawdowns}
-            columns={[
-              { accessorKey: 'Start', header: 'Started' },
-              { accessorKey: 'End', header: 'Ended' },
-              { accessorKey: 'Drawdown', header: 'Drawdown' },
-              { accessorKey: 'Days', header: 'Days' }
-            ]}
-          />
-        </ChartCard>
-        <ChartCard title="Monthly Returns">
-          <HeatChart data={returnsM} />
-        </ChartCard>
         <ChartCard title="Boxplot">
           <Boxplot />
-        </ChartCard>
+        </ChartCard> */}
       </div>
     </PageContainer>
   );

@@ -52,13 +52,15 @@ const option: EChartsOption = {
 };
 
 export function BarChart({
-  data
+  data,
+  loading
 }: {
   data?: {
     id: string;
     date: string;
     value: number;
   }[];
+  loading?: boolean;
 }) {
   const series = useMemo(() => {
     if (!data) return undefined;
@@ -75,7 +77,12 @@ export function BarChart({
     );
   }, [data]);
   return (
-    <Chart option={{ ...option, series }} notMerge className="min-h-[500px]" />
+    <Chart
+      option={{ ...option, series }}
+      notMerge
+      className="min-h-[500px]"
+      showLoading={loading}
+    />
   );
 }
 

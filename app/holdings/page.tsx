@@ -86,11 +86,15 @@ export default async function Holdings() {
             )
               .reverse()
               .map(([date, item]) => (
-                <SimpleLineChart
+                <Link
                   key={date}
-                  title={format(new Date(date), 'yyyy-MM')}
-                  data={item}
-                />
+                  href={`/holdings/${format(new Date(date), 'yyyy-MM-dd')}`}
+                >
+                  <SimpleLineChart
+                    title={format(new Date(date), 'yyyy-MM')}
+                    data={item}
+                  />
+                </Link>
               ))}
           </div>
         </ChartCard>
