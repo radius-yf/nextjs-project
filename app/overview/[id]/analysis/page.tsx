@@ -1,29 +1,35 @@
 import {
-  getPortfolioDrawdowns,
-  getPortfolioMetrics,
-  getPortfolioReturns,
-  getPortfolioRollingIndicator,
-  getPortfolioValues
-} from '@/api/api';
+  getReportPortfolioDrawdowns,
+  getReportPortfolioMetricsRowData,
+  getReportPortfolioReturns,
+  getReportPortfolioRollingIndicator,
+  getReportPortfolioValues
+} from '@/api/api-v2';
 import { ChartCard } from '@/components/charts/card';
 import { HeatChart } from '@/components/charts/heat';
 import { HistogramChart } from '@/components/charts/histogram';
 import PageContainer from '@/components/layout/page-container';
 import { TabCard } from '@/components/tab-card';
-import { ReactTable } from '@/components/tables/table';
-import { H1, H4, P } from '@/components/ui/typography';
-import { groupBy } from '@/lib/data-conversion';
+import { DataTable, ReactTable } from '@/components/tables/table';
+import { H1, P } from '@/components/ui/typography';
 
-export default async function Analysis() {
+export default async function Analysis({
+  params,
+  searchParams: p
+}: {
+  params: { id: string };
+  searchParams: { start: string; end: string };
+}) {
   const [values, returnsY, returnsM, beta, drawdowns, metrics] =
     await Promise.all([
-      getPortfolioValues(),
-      getPortfolioReturns('Y'),
-      getPortfolioReturns('M'),
-      getPortfolioRollingIndicator('beta'),
-      getPortfolioDrawdowns(),
-      getPortfolioMetrics()
+      getReportPortfolioValues(params.id, p.start, p.end, ''),
+      getReportPortfolioReturns(params.id, 'y', p.start, p.end),
+      getReportPortfolioReturns(params.id, 'm', p.start, p.end),
+      getReportPortfolioRollingIndicator(params.id, p.start, p.end, 'beta'),
+      getReportPortfolioDrawdowns(params.id, p.start, p.end),
+      getReportPortfolioMetricsRowData(params.id, p.start, p.end)
     ]);
+
   return (
     <PageContainer scrollable={true}>
       <div className="grid grid-cols-1 gap-6 pb-16">
@@ -46,10 +52,10 @@ export default async function Analysis() {
           initialData={{ data: values }}
           getData={async (val) => {
             'use server';
-            const data = await getPortfolioValues(
-              undefined,
-              undefined,
-              undefined,
+            const data = await getReportPortfolioValues(
+              params.id,
+              p.start,
+              p.end,
               val as any
             );
             return { data };
@@ -61,14 +67,19 @@ export default async function Analysis() {
         <TabCard
           title="Returns vs Benchmark"
           options={[
-            { name: 'Year', value: 'Y' },
-            { name: 'Month', value: 'M' }
+            { name: 'Year', value: 'y' },
+            { name: 'Month', value: 'm' }
           ]}
           render="BarChart"
           initialData={{ data: returnsY }}
           getData={async (val) => {
             'use server';
-            const data = await getPortfolioReturns(val as any);
+            const data = await getReportPortfolioReturns(
+              params.id,
+              val as any,
+              p.start,
+              p.end
+            );
             return { data };
           }}
         />
@@ -87,7 +98,12 @@ export default async function Analysis() {
           initialData={{ data: beta }}
           getData={async (val) => {
             'use server';
-            const data = await getPortfolioRollingIndicator(val as any);
+            const data = await getReportPortfolioRollingIndicator(
+              params.id,
+              p.start,
+              p.end,
+              val as any
+            );
             return { data };
           }}
         />
@@ -103,25 +119,13 @@ export default async function Analysis() {
           />
         </ChartCard>
         <ChartCard title="Key Performance Metrics">
-          <div className="columns-4">
-            {groupBy(metrics[1], 'group')
-              .filter(([k]) => k)
-              .map(([key, item]) => (
-                <div key={key} className="break-inside-avoid pb-4 pr-6">
-                  <H4>{key}</H4>
-                  <ReactTable
-                    data={item}
-                    columns={[
-                      { accessorKey: 'key', header: 'Metric' },
-                      // { accessorKey: 'group', header: 'group' },
-                      ...metrics[0].map((i) => ({
-                        accessorKey: i,
-                        header: i
-                      }))
-                    ]}
-                  />
-                </div>
-              ))}
+          <div className="grid grid-cols-3 gap-6">
+            <DataTable
+              data={metrics}
+              groupKey="key"
+              groupName="Metric"
+              split={3}
+            />
           </div>
         </ChartCard>
         {/* <ChartCard title="Cumulative Returns vs Benchmark">

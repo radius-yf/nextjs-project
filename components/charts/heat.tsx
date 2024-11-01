@@ -2,6 +2,8 @@
 import { EChartsOption, ECharts, connect } from 'echarts';
 import { useEffect, useMemo, useRef } from 'react';
 import Chart from './chart';
+import { formatFloat } from '@/lib/utils';
+import { getMonth } from 'date-fns/esm';
 
 const createOption = (
   data: {
@@ -37,11 +39,12 @@ const createOption = (
           data: Array.from(
             Map.groupBy(p[1], (d) => new Date(d.date).getFullYear())
           ).flatMap(([key, val]) =>
-            m.map((i) => [
+            m.map((i, index) => [
               i,
               key,
-              ((val.find((j) => j.date.endsWith(i))?.value ?? 0) * 100).toFixed(
-                2
+              formatFloat(
+                (val.find((j) => getMonth(new Date(j.date)) === index)?.value ??
+                  0) * 100
               )
             ])
           ),

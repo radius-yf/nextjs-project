@@ -53,7 +53,7 @@ export function NavCard({
             variant="outline"
             size="icon-sm"
             onClick={() => {
-              router.push(`/overview/${id}?${stringify(qs.current)}`);
+              router.push(`/overview/${id}/home?${stringify(qs.current)}`);
             }}
           >
             <ChevronsRight size={32} />

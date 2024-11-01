@@ -139,6 +139,41 @@ export async function getReportPortfolioValues(
 }
 
 /**
+ * 投资组合收益率(vs基准收益率)
+ */
+export async function getReportPortfolioReturns(
+  id: string,
+  freq: 'm' | 'y',
+  start_date?: Date | string,
+  end_date?: Date | string
+) {
+  const { data } = await fetchGraphQL(
+    `
+    query ReportPortfolioReturns($id: String!, $freq:String!, $start_date: timestamp, $end_date: timestamp) {
+      v2_report_portfolio_returns(id: $id, start_date: $start_date, end_date: $end_date,freq: $freq) {
+        id
+        date
+        value
+      }
+    }`,
+    'ReportPortfolioReturns',
+    {
+      id,
+      freq,
+      start_date: start_date
+        ? format(new Date(start_date), 'yyyy-MM-dd')
+        : undefined,
+      end_date: end_date ? format(new Date(end_date), 'yyyy-MM-dd') : undefined
+    }
+  );
+  return data.v2_report_portfolio_returns as {
+    id: string;
+    date: string;
+    value: number;
+  }[];
+}
+
+/**
  * 投资组合收益统计指标(key performance metrics)
  */
 export async function getReportPortfolioMetrics(
@@ -146,15 +181,29 @@ export async function getReportPortfolioMetrics(
   start_date?: Date | string,
   end_date?: Date | string
 ) {
+  const data = await getReportPortfolioMetricsRowData(id, start_date, end_date);
+  return groupBy(data, 'id').map(
+    ([id, val]) =>
+      ({
+        id,
+        ...val?.reduce((acc, { key, value }) => ({ ...acc, [key]: value }), {})
+      }) as Record<string, string> & { id: string }
+  );
+}
+export async function getReportPortfolioMetricsRowData(
+  id: string,
+  start_date?: Date | string,
+  end_date?: Date | string
+) {
   const { data } = await fetchGraphQL(
     `
-    query ReportPortfolioMetrics($id: String!, $start_date: timestamp, $end_date: timestamp) {
-      v2_report_portfolio_metrics(id: $id, start_date: $start_date, end_date: $end_date) {
-        id
-        key
-        value
-      }
-    }`,
+      query ReportPortfolioMetrics($id: String!, $start_date: timestamp, $end_date: timestamp) {
+        v2_report_portfolio_metrics(id: $id, start_date: $start_date, end_date: $end_date) {
+          id
+          key
+          value
+        }
+      }`,
     'ReportPortfolioMetrics',
     {
       id,
@@ -164,20 +213,47 @@ export async function getReportPortfolioMetrics(
       end_date: end_date ? format(new Date(end_date), 'yyyy-MM-dd') : undefined
     }
   );
-  return groupBy(
-    data.v2_report_portfolio_metrics as {
-      id: string;
-      key: string;
-      value: string;
-    }[],
-    'id'
-  ).map(
-    ([id, val]) =>
-      ({
-        id,
-        ...val?.reduce((acc, { key, value }) => ({ ...acc, [key]: value }), {})
-      }) as Record<string, string> & { id: string }
+  return data.v2_report_portfolio_metrics as {
+    id: string;
+    key: string;
+    value: string;
+  }[];
+}
+
+/**
+ * 投资组合滚动统计指标(rolling indicator)
+ */
+export async function getReportPortfolioRollingIndicator(
+  id: string,
+  start_date?: Date | string,
+  end_date?: Date | string,
+  indicator: 'beta' | 'volatility' | 'sharpe' | 'sortino' = 'beta',
+  roll_window: '6M' | '12M' = '6M'
+) {
+  const { data } = await fetchGraphQL(
+    `query ReportPortfolioRollingIndicator($id: String!, $indicator: String!="beta", $roll_window: String, $start_date: timestamp, $end_date: timestamp) {
+      v2_report_portfolio_rolling_indicator(id: $id, indicator: $indicator, roll_window: $roll_window, start_date: $start_date, end_date: $end_date) {
+        id
+        date
+        value
+      }
+    }`,
+    'ReportPortfolioRollingIndicator',
+    {
+      id,
+      start_date: start_date
+        ? format(new Date(start_date), 'yyyy-MM-dd')
+        : undefined,
+      end_date: end_date ? format(new Date(end_date), 'yyyy-MM-dd') : undefined,
+      indicator,
+      roll_window
+    }
   );
+  return data?.portfolio_rolling_indicator as {
+    id: string;
+    date: string;
+    value: number;
+  }[];
 }
 
 /**
@@ -244,6 +320,41 @@ export async function getReportPortfolioHoldingsIndustry(
   );
   return data.v2_report_portfolio_holdings_industry as {
     id: string;
+    value: number;
+  }[];
+}
+
+/**
+ * 投资组合回撤区间(Drawdowns)
+ */
+export async function getReportPortfolioDrawdowns(
+  id: string,
+  start_date?: Date | string,
+  end_date?: Date | string,
+  dd_type: 'worst' | 'longest' = 'worst'
+) {
+  const { data } = await fetchGraphQL(
+    `query ReportPortfolioDrawdowns($id: String!, $dd_type: String, $start_date: timestamp, $end_date: timestamp) {
+      v2_report_portfolio_drawdowns(id: $id, dd_type: $dd_type, start_date: $start_date, end_date: $end_date) {
+        Days
+        Drawdown
+        End
+        Start
+      }
+    }`,
+    'ReportPortfolioDrawdowns',
+    {
+      id,
+      start_date: start_date
+        ? format(new Date(start_date), 'yyyy-MM-dd')
+        : undefined,
+      end_date: end_date ? format(new Date(end_date), 'yyyy-MM-dd') : undefined,
+      dd_type
+    }
+  );
+  return data.v2_report_portfolio_drawdowns as {
+    id: string;
+    date: string;
     value: number;
   }[];
 }
