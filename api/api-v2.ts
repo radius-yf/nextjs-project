@@ -249,7 +249,7 @@ export async function getReportPortfolioRollingIndicator(
       roll_window
     }
   );
-  return data?.portfolio_rolling_indicator as {
+  return data?.v2_report_portfolio_rolling_indicator as {
     id: string;
     date: string;
     value: number;
