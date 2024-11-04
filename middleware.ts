@@ -11,4 +11,4 @@ export default auth((req) => {
   }
 });
 
-export const config = { matcher: ['/home', '/analysis', '/holdings'] };
+export const config = { matcher: ['/nav', '/overview'] };

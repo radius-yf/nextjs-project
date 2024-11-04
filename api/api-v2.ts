@@ -73,6 +73,7 @@ export async function getBacktestGetMultiProcessStatus(pid_list: string[]) {
 }
 
 export interface BacktestParams {
+  alias: string;
   region: string;
   start_date: string;
   end_date: string;
@@ -90,13 +91,13 @@ export interface BacktestParams {
  * @returns id
  */
 export async function backtestCreateProcess(bt_args: BacktestParams) {
+  const { alias, ...rest } = bt_args;
   const { data } = await fetchGraphQL(
-    `
-    query BacktestCreateProcess($bt_args: String!) {
-      v2_backtest_create_process(bt_args: $bt_args)
+    `query BacktestCreateProcess($bt_args: String!, $alias: String) {
+      v2_backtest_create_process(bt_args: $bt_args, $alias)
     }`,
     'BacktestCreateProcess',
-    { bt_args: JSON.stringify(bt_args) }
+    { bt_args: JSON.stringify(rest), alias }
   );
   return data.v2_backtest_create_process as string;
 }
@@ -294,6 +295,39 @@ export async function getReportPortfolioKeyRatios(
 }
 
 /**
+ * 投资组合持仓市值百分比
+ */
+export async function getReportPortfolioHoldingsPercent(
+  id: string,
+  start_date?: Date | string,
+  end_date?: Date | string,
+  top_n?: number
+) {
+  const { data } = await fetchGraphQL(
+    `
+    query ReportPortfolioHoldingsPercent($id: String!, $top_n: Int, $start_date: timestamp, $end_date: timestamp) {
+      v2_report_portfolio_holdings_percent(id: $id, top_n: $top_n, end_date: $end_date) {
+        id
+        value
+      }
+    }`,
+    'ReportPortfolioHoldingsPercent',
+    {
+      id,
+      // start_date: start_date
+      //   ? format(new Date(start_date), 'yyyy-MM-dd')
+      //   : undefined,
+      end_date: end_date ? format(new Date(end_date), 'yyyy-MM-dd') : undefined,
+      top_n
+    }
+  );
+  return data.v2_report_portfolio_holdings_percent as {
+    id: string;
+    value: number;
+  }[];
+}
+
+/**
  * 投资组合持仓行业市值百分比
  */
 export async function getReportPortfolioHoldingsIndustry(
@@ -353,6 +387,115 @@ export async function getReportPortfolioDrawdowns(
     }
   );
   return data.v2_report_portfolio_drawdowns as {
+    id: string;
+    date: string;
+    value: number;
+  }[];
+}
+
+type HoldingsKey =
+  | 's0'
+  | 's1'
+  | 's2'
+  | 's3'
+  | 's4'
+  | 's5'
+  | 's6'
+  | 's7'
+  | 's8'
+  | 's9'
+  | 's10'
+  | 's11'
+  | 's12'
+  | 's13'
+  | 's14'
+  | 's15'
+  | 's16'
+  | 's17'
+  | 's18'
+  | 's19';
+/**
+ * 投资组合历史持仓列表(top20持仓)
+ */
+export async function getReportPortfolioHoldingsHistory(
+  id: string,
+  start_date?: Date | string,
+  end_date?: Date | string
+) {
+  const { data } = await fetchGraphQL(
+    `query ReportPortfolioHoldingsHistory($id: String!, $start_date: timestamp, $end_date: timestamp) {
+      v2_report_portfolio_holdings_history(id: $id, start_date: $start_date, end_date: $end_date) {
+        date
+        s0
+        s1
+        s2
+        s3
+        s4
+        s5
+        s6
+        s7
+        s8
+        s9
+        s10
+        s11
+        s12
+        s13
+        s14
+        s15
+        s16
+        s17
+        s18
+        s19
+      }
+    }`,
+    'ReportPortfolioHoldingsHistory',
+    {
+      id,
+      start_date: start_date
+        ? format(new Date(start_date), 'yyyy-MM-dd')
+        : undefined,
+      end_date: end_date ? format(new Date(end_date), 'yyyy-MM-dd') : undefined
+    }
+  );
+  return data.v2_report_portfolio_holdings_history as ({
+    date: string;
+  } & Record<HoldingsKey, number>)[];
+}
+
+/**
+ * 投资组合历史持仓累计收益率(vs基准收益率)
+ */
+export async function getReportPortfolioHoldingsHistoryValue(
+  id: string,
+  start_date?: Date | string,
+  end_date?: Date | string,
+  freq?: string,
+  dates?: string[],
+  load_stocks?: boolean
+) {
+  const { data } = await fetchGraphQL(
+    `query ReportPortfolioHoldingsHistoryValue($id: String!, $freq: String, $dates: [String], $load_stocks: Boolean, $start_date: timestamp, $end_date: timestamp) {
+      v2_report_portfolio_holdings_history_value(id: $id, freq: $freq, dates: $dates, load_stocks: $load_stocks, start_date: $start_date, end_date: $end_date, ) {
+        key_date
+        id
+        date
+        value
+      }
+    }`,
+    'ReportPortfolioHoldingsHistoryValue',
+    {
+      id,
+      freq,
+      dates,
+      load_stocks,
+      start_date: start_date
+        ? format(new Date(start_date), 'yyyy-MM-dd')
+        : undefined,
+      end_date: end_date ? format(new Date(end_date), 'yyyy-MM-dd') : undefined
+    }
+  );
+  return data.v2_report_portfolio_holdings_history_value as {
+    key_date: string;
     id: string;
     date: string;
     value: number;

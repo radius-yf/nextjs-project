@@ -47,6 +47,7 @@ interface BacktestParams {
   holding_time: string[];
 }
 const formSchema = z.object({
+  alias: z.string(),
   region: z.string(),
   stock_filter: z.string(),
   industry: z.array(z.string()),
@@ -84,6 +85,18 @@ const BacktestForm = forwardRef(
     return (
       <Form {...form}>
         <form className="mb-4 space-y-2 [&>div]:grid [&>div]:grid-cols-[180px_1fr] [&>div]:gap-3 [&>div]:space-y-0 [&_label]:text-right">
+          <FormField
+            control={form.control}
+            name="alias"
+            render={({ field }) => (
+              <FormItem className="items-center">
+                <FormLabel>Alias</FormLabel>
+                <FormControl>
+                  <Input placeholder="Please input alias" {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="region"

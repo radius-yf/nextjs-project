@@ -1,4 +1,5 @@
-import { getPortfolioHoldings, getPortfolioHoldingsDetail } from '@/api/api';
+import { getPortfolioHoldingsDetail } from '@/api/api';
+import { getReportPortfolioHoldingsHistory } from '@/api/api-v2';
 import { genDataByHolding } from '@/api/holdings';
 import { ChartCard } from '@/components/charts/card';
 import { SimpleLineChart } from '@/components/charts/line';
@@ -15,10 +16,17 @@ import { H1, P } from '@/components/ui/typography';
 import { groupBy } from '@/lib/data-conversion';
 import { format } from 'date-fns/esm';
 import Link from 'next/link';
+import { stringify } from 'qs';
 
-export default async function Holdings() {
+export default async function Holdings({
+  params,
+  searchParams: p
+}: {
+  params: { id: string };
+  searchParams: { start: string; end: string };
+}) {
   const [holdings, detail] = await Promise.all([
-    getPortfolioHoldings(),
+    getReportPortfolioHoldingsHistory(params.id, p.start, p.end),
     getPortfolioHoldingsDetail()
   ]);
   return (
@@ -47,7 +55,12 @@ export default async function Holdings() {
               {holdings?.map((i) => (
                 <TableRow key={i.date}>
                   <TableCell>
-                    <Link href={`/holdings/${i.date}`}>
+                    <Link
+                      href={[
+                        `./holdings/${format(new Date(i.date), 'yyyy-MM-dd')}`,
+                        stringify(p)
+                      ].join('?')}
+                    >
                       {format(new Date(i.date), 'yyyy-MM')}
                     </Link>
                   </TableCell>
@@ -88,7 +101,7 @@ export default async function Holdings() {
               .map(([date, item]) => (
                 <Link
                   key={date}
-                  href={`/holdings/${format(new Date(date), 'yyyy-MM-dd')}`}
+                  href={`./holdings/${format(new Date(date), 'yyyy-MM-dd')}`}
                 >
                   <SimpleLineChart
                     title={format(new Date(date), 'yyyy-MM')}

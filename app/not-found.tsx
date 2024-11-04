@@ -15,9 +15,9 @@ export default function NotFound() {
         moved.
       </p>
       <div className="mt-8 flex justify-center gap-2">
-        <Link href="/home" passHref legacyBehavior>
+        <Link href="/nav" passHref legacyBehavior>
           <Button variant="default" size="lg">
-            Back to Home
+            Back to Navigation
           </Button>
         </Link>
       </div>

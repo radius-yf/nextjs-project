@@ -1,6 +1,7 @@
 import { getPortfolioSummary } from '@/api/api';
 import {
   getReportPortfolioHoldingsIndustry,
+  getReportPortfolioHoldingsPercent,
   getReportPortfolioKeyRatios,
   getReportPortfolioValues
 } from '@/api/api-v2';
@@ -18,8 +19,9 @@ export default async function Overview({
   params: { id: string };
   searchParams: { start: string; end: string };
 }) {
-  const [keyRatios, industry, values, summary] = await Promise.all([
+  const [keyRatios, percent, industry, values, summary] = await Promise.all([
     getReportPortfolioKeyRatios(params.id, p.start, p.end),
+    getReportPortfolioHoldingsPercent(params.id, p.start, p.end),
     getReportPortfolioHoldingsIndustry(params.id, p.start, p.end),
     getReportPortfolioValues(params.id, p.start, p.end),
     getPortfolioSummary(params.id)
@@ -30,7 +32,7 @@ export default async function Overview({
       <div className="grid gap-6 [&>.grid]:gap-6">
         <div className="grid grid-cols-[1fr_2fr]">
           <ChartCard>
-            <PieChart data={industry} />
+            <PieChart data={percent} />
           </ChartCard>
           <ChartCard>
             <LineChart data={values} />
@@ -39,7 +41,7 @@ export default async function Overview({
         <ChartCard title="Key Ratios">
           <KeyRatios data={keyRatios} />
         </ChartCard>
-        <ChartCard>
+        <ChartCard title="行业市值分布">
           <InvestmentDistribution data={industry} />
         </ChartCard>
         <ChartCard title="总策略加权指标">
