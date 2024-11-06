@@ -1,7 +1,12 @@
 'use client';
+import {
+  getReportPortfolioMetrics,
+  getReportPortfolioValues
+} from '@/api/api-v2';
 import { RangeLineChart } from '@/components/charts/line';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAsyncReducer } from '@/hooks/useAsyncReducer';
 import { formatFloat } from '@/lib/utils';
 import { ChevronsRight, Trash2 } from 'lucide-react';
 import { useRouter } from 'nextjs-toploader/app';
@@ -11,26 +16,19 @@ import { useRef } from 'react';
 export function NavCard({
   id,
   name,
-  values,
-  metrics,
-  status,
   isBacktest
 }: {
   id: string;
   name: string;
-  values: {
-    id: string;
-    date: string;
-    value: number;
-  }[];
-  metrics: (Record<string, string> & { id: string })[];
-  status: string;
-  isBacktest: boolean;
+  isBacktest?: boolean;
 }) {
   const qs = useRef<any>();
   const router = useRouter();
-  const hsi = metrics.find((m) => m.id === 'hsi');
-  const metric = metrics.find((m) => m.id !== 'hsi');
+  const { data, loading } = useAsyncReducer(getReportPortfolioValues, [id]);
+
+  const { data: metrics } = useAsyncReducer(getReportPortfolioMetrics, [id]);
+  const hsi = metrics?.find((m) => m.id === 'hsi');
+  const metric = metrics?.find((m) => m.id !== 'hsi');
 
   return (
     <Card>
@@ -59,64 +57,59 @@ export function NavCard({
             <ChevronsRight size={32} />
           </Button>
         </div>
-        {status === 'done' && (
-          <div className="mb-4 grid w-full grid-cols-6 gap-x-2 border-t px-4 py-1">
-            <Pairs
-              name="Total Return"
-              value={metric?.['Total Return']}
-              highlight
-            />
-            <Pairs
-              name="CAGR% (Annual Return)"
-              value={metric?.['CAGR% (Annual Return)']}
-              highlight
-            />
-            <Pairs
-              name="Excess Return"
-              value={
-                formatFloat(
-                  parseFloat(metric?.['Total Return'] || '0') -
-                    parseFloat(hsi?.['Total Return'] || '0')
-                ) + '%'
-              }
-              highlight
-            />
-            <Pairs
-              name="Benchmark Return"
-              value={hsi?.['Total Return']}
-              highlight
-            />
-            <Pairs name="Alpha" value={metric?.['Alpha']} />
-            <Pairs name="Beta" value={metric?.['Beta']} />
-            <Pairs name="Sharpe" value={metric?.['Sharpe']} />
-            <Pairs name="Sortino" value={metric?.['Sortino']} />
-            <Pairs
-              name="Max Drawdown"
-              value={metric?.['Max Drawdown']}
-              highlight
-            />
-            <Pairs name="Longest DD Days" value={metric?.['Longest DD Days']} />
-            <Pairs
-              name="Volatility (ann.)"
-              value={metric?.['Volatility (ann.)']}
-              highlight
-            />
-            <Pairs
-              name="Information Ratio"
-              value={metric?.['Information Ratio']}
-            />
-          </div>
-        )}
+        <div className="mb-4 grid w-full grid-cols-6 gap-x-2 border-t px-4 py-1">
+          <Pairs
+            name="Total Return"
+            value={metric?.['Total Return']}
+            highlight
+          />
+          <Pairs
+            name="CAGR% (Annual Return)"
+            value={metric?.['CAGR% (Annual Return)']}
+            highlight
+          />
+          <Pairs
+            name="Excess Return"
+            value={
+              formatFloat(
+                parseFloat(metric?.['Total Return'] || '0') -
+                  parseFloat(hsi?.['Total Return'] || '0')
+              ) + '%'
+            }
+            highlight
+          />
+          <Pairs
+            name="Benchmark Return"
+            value={hsi?.['Total Return']}
+            highlight
+          />
+          <Pairs name="Alpha" value={metric?.['Alpha']} />
+          <Pairs name="Beta" value={metric?.['Beta']} />
+          <Pairs name="Sharpe" value={metric?.['Sharpe']} />
+          <Pairs name="Sortino" value={metric?.['Sortino']} />
+          <Pairs
+            name="Max Drawdown"
+            value={metric?.['Max Drawdown']}
+            highlight
+          />
+          <Pairs name="Longest DD Days" value={metric?.['Longest DD Days']} />
+          <Pairs
+            name="Volatility (ann.)"
+            value={metric?.['Volatility (ann.)']}
+            highlight
+          />
+          <Pairs
+            name="Information Ratio"
+            value={metric?.['Information Ratio']}
+          />
+        </div>
       </CardHeader>
       <CardContent className="pt-2">
-        {status === 'done' ? (
-          <RangeLineChart
-            data={values}
-            onZoomChange={(ev) => (qs.current = ev)}
-          />
-        ) : (
-          <div>Loading...</div>
-        )}
+        <RangeLineChart
+          loading={loading}
+          data={data}
+          onZoomChange={(ev) => (qs.current = ev)}
+        />
       </CardContent>
     </Card>
   );
@@ -155,7 +148,7 @@ function Pairs({
             : ''
         }
       >
-        {value}
+        {value ?? '-'}
       </span>
     </div>
   );

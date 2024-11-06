@@ -3,7 +3,7 @@ import { debounce } from '@/lib/utils';
 import { Duration } from 'date-fns';
 import { format, sub } from 'date-fns/esm';
 import { ECharts, EChartsOption } from 'echarts';
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import Chart from './chart';
 import { translate } from './chart-util';
 
@@ -99,48 +99,53 @@ export function RangeLineChart({
     }));
   }, [data, fmt]);
   const ref = useRef<ECharts>();
+
+  useEffect(() => {
+    if (series) {
+      const handler = debounce((param: any) => {
+        const p = param.batch?.[0] ? param.batch[0] : param;
+        const data = series?.[0].data ?? [];
+        const startIndex = Math.floor((p.start / 100) * data.length);
+        const endIndex = Math.ceil((p.end / 100) * data.length);
+        onZoomChange?.({
+          start: data[startIndex][0],
+          end: data[endIndex]?.[0]
+        });
+        const s =
+          startIndex === 0
+            ? series
+            : series?.map((s) => {
+                const startValue = s.data.at(startIndex)?.[1];
+                return startValue === undefined
+                  ? s
+                  : {
+                      ...s,
+                      data: s.data.map(([d, p]) => [
+                        d,
+                        (p + 1) / (startValue + 1) - 1
+                      ])
+                    };
+              });
+        ref.current?.setOption({ series: s }, false);
+      });
+      ref.current!.on('dataZoom', handler);
+      ref.current!.setOption({ series });
+      ref.current!.dispatchAction({
+        type: 'dataZoom',
+        start: calculateStart(series?.[0].data.map(([d]) => d) ?? [], {
+          years: 3
+        })
+      });
+    }
+  }, [series, onZoomChange]);
   return (
     <Chart
-      option={{ ...option, series }}
+      option={option}
       showLoading={loading}
       className="min-h-[300px]"
       notMerge={true}
       onChartReady={(instance: ECharts) => {
         ref.current = instance;
-        instance.dispatchAction({
-          type: 'dataZoom',
-          start: calculateStart(series?.[0].data.map(([d]) => d) ?? [], {
-            years: 3
-          })
-        });
-      }}
-      onEvents={{
-        datazoom: debounce((param: any) => {
-          const p = param.batch?.[0] ? param.batch[0] : param;
-          const data = series?.[0].data ?? [];
-          const startIndex = Math.floor((p.start / 100) * data.length);
-          const endIndex = Math.ceil((p.end / 100) * data.length);
-          onZoomChange?.({
-            start: data[startIndex][0],
-            end: data[endIndex]?.[0]
-          });
-          const s =
-            startIndex === 0
-              ? series
-              : series?.map((s) => {
-                  const startValue = s.data.at(startIndex)?.[1];
-                  return startValue === undefined
-                    ? s
-                    : {
-                        ...s,
-                        data: s.data.map(([d, p]) => [
-                          d,
-                          (p + 1) / (startValue + 1) - 1
-                        ])
-                      };
-                });
-          ref.current?.setOption({ series: s }, false);
-        })
       }}
     />
   );

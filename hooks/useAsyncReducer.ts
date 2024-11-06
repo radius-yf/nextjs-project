@@ -1,33 +1,38 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export function useAsyncReducer<T extends unknown[], R>(
   callback: (...args: T) => Promise<R>,
   args?: T,
   initialState?: R
 ) {
-  const [data, setData] = useState<R | undefined>(initialState);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error>();
+  const [status, setStatus] = useState({
+    data: initialState,
+    loading: !initialState,
+    error: undefined as Error | undefined
+  });
 
-  const fetchData = useCallback(async (...args: T) => {
-    setLoading(true);
-    try {
-      const result = await callback(...args);
-      setData(result);
-    } catch (error) {
-      setError(error as Error);
-    } finally {
-      setLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const fetchData = useCallback(
+    async (...args: T) => {
+      setStatus((s) => ({ ...s, loading: true }));
+      try {
+        const result = await callback(...args);
+        setStatus({ data: result, loading: false, error: undefined });
+      } catch (error) {
+        setStatus((s) => ({ ...s, loading: false, error: error as Error }));
+      }
+    },
+    [callback]
+  );
 
+  // 即使在严格模式下，也只会执行一次
+  const initialFlag = useRef(true);
   useEffect(() => {
-    if (args && !initialState) {
+    if (args && !initialState && initialFlag.current) {
+      initialFlag.current = false;
       fetchData(...args);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { data, loading, error, fetchData };
+  return { ...status, fetchData };
 }

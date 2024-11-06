@@ -1,3 +1,4 @@
+'use server';
 import { format } from 'date-fns/esm';
 import { fetchGraphQL } from './fetch';
 import { groupBy } from '@/lib/data-conversion';
@@ -467,10 +468,10 @@ export async function getReportPortfolioHoldingsHistory(
  */
 export async function getReportPortfolioHoldingsHistoryValue(
   id: string,
+  dates?: string[],
   start_date?: Date | string,
   end_date?: Date | string,
   freq?: string,
-  dates?: string[],
   load_stocks?: boolean
 ) {
   const { data } = await fetchGraphQL(

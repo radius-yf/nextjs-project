@@ -28,7 +28,7 @@ const hideHeader = ['/login'];
 export function Navigation() {
   const path = usePathname();
   const query = useSearchParams();
-  const [_, parent, id, page, ...rest] = path.split('/');
+  const [_, parent, id, page] = path.split('/');
   if (hideHeader.includes(path)) {
     return null;
   }
@@ -50,7 +50,7 @@ export function Navigation() {
               >
                 <Link
                   href={
-                    [_, parent, id, menu.path, ...rest].join('/') +
+                    [_, parent, id, menu.path].join('/') +
                     '?' +
                     query.toString()
                   }

@@ -1,3 +1,4 @@
+'use client';
 import {
   getBacktestFilter,
   getBacktestGetConfig,
@@ -9,6 +10,7 @@ import {
 import { BacktestFormDialog } from '@/components/forms/backtest';
 import PageContainer from '@/components/layout/page-container';
 import { NavCard } from './card';
+import { useAsyncReducer } from '@/hooks/useAsyncReducer';
 
 async function getData() {
   const [ids, backtest] = await Promise.all([
@@ -46,16 +48,34 @@ async function getData() {
   );
 }
 
-export default async function Page() {
-  const [data, backtest] = await Promise.all([getData(), getBacktestFilter()]);
+export default function Page() {
+  // const { data } = useAsyncReducer(() => getData(), []);
+  const { data: backtest } = useAsyncReducer(getBacktestFilter, []);
+  const { data: idList } = useAsyncReducer(getReportOnlineIdlist, []);
+  const { data: bkList } = useAsyncReducer(getBacktestGetConfig, []);
+
   return (
     <PageContainer className="grid grid-cols-1 gap-6">
       <div className="flex justify-end">
-        <BacktestFormDialog data={backtest}></BacktestFormDialog>
+        {backtest && <BacktestFormDialog data={backtest}></BacktestFormDialog>}
       </div>
-      {data.map((d) => (
-        <NavCard key={d.id} {...d}></NavCard>
-      ))}
+      {idList ? (
+        idList.map((item) => (
+          <NavCard key={item.id} id={item.id} name={item.name} />
+        ))
+      ) : (
+        <div>Loading...</div>
+      )}
+      {bkList
+        ? bkList.map((d) => (
+            <NavCard
+              key={d.bt_id}
+              id={d.bt_id}
+              name={d.bt_id}
+              isBacktest
+            ></NavCard>
+          ))
+        : null}
     </PageContainer>
   );
 }

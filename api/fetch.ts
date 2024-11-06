@@ -1,4 +1,5 @@
 // server only
+'use server';
 
 import { auth } from '@/auth';
 import { graphqlAuthToken, url } from '@/config';
