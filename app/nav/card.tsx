@@ -16,26 +16,22 @@ import { useRef } from 'react';
 export function NavCard({
   id,
   name,
-  isBacktest
+  backtest
 }: {
   id: string;
-  name: string;
-  isBacktest?: boolean;
+  name?: string;
+  backtest?: any;
 }) {
   const qs = useRef<any>();
   const router = useRouter();
   const { data, loading } = useAsyncReducer(getReportPortfolioValues, [id]);
-
-  const { data: metrics } = useAsyncReducer(getReportPortfolioMetrics, [id]);
-  const hsi = metrics?.find((m) => m.id === 'hsi');
-  const metric = metrics?.find((m) => m.id !== 'hsi');
 
   return (
     <Card>
       <CardHeader className="flex-wrap">
         <CardTitle>{name}</CardTitle>
         <div className="flex items-center gap-1 pr-4">
-          {isBacktest && (
+          {backtest && (
             <Button
               title="delete"
               className="text-destructive hover:text-destructive"
@@ -57,52 +53,7 @@ export function NavCard({
             <ChevronsRight size={32} />
           </Button>
         </div>
-        <div className="mb-4 grid w-full grid-cols-6 gap-x-2 border-t px-4 py-1">
-          <Pairs
-            name="Total Return"
-            value={metric?.['Total Return']}
-            highlight
-          />
-          <Pairs
-            name="CAGR% (Annual Return)"
-            value={metric?.['CAGR% (Annual Return)']}
-            highlight
-          />
-          <Pairs
-            name="Excess Return"
-            value={
-              formatFloat(
-                parseFloat(metric?.['Total Return'] || '0') -
-                  parseFloat(hsi?.['Total Return'] || '0')
-              ) + '%'
-            }
-            highlight
-          />
-          <Pairs
-            name="Benchmark Return"
-            value={hsi?.['Total Return']}
-            highlight
-          />
-          <Pairs name="Alpha" value={metric?.['Alpha']} />
-          <Pairs name="Beta" value={metric?.['Beta']} />
-          <Pairs name="Sharpe" value={metric?.['Sharpe']} />
-          <Pairs name="Sortino" value={metric?.['Sortino']} />
-          <Pairs
-            name="Max Drawdown"
-            value={metric?.['Max Drawdown']}
-            highlight
-          />
-          <Pairs name="Longest DD Days" value={metric?.['Longest DD Days']} />
-          <Pairs
-            name="Volatility (ann.)"
-            value={metric?.['Volatility (ann.)']}
-            highlight
-          />
-          <Pairs
-            name="Information Ratio"
-            value={metric?.['Information Ratio']}
-          />
-        </div>
+        <Metrics id={id} />
       </CardHeader>
       <CardContent className="pt-2">
         <RangeLineChart
@@ -112,6 +63,44 @@ export function NavCard({
         />
       </CardContent>
     </Card>
+  );
+}
+function Metrics({ id }: { id: string }) {
+  const { data: metrics } = useAsyncReducer(getReportPortfolioMetrics, [id]);
+  const hsi = metrics?.find((m) => m.id === 'hsi');
+  const metric = metrics?.find((m) => m.id !== 'hsi');
+  return (
+    <div className="mb-4 grid w-full grid-cols-6 gap-x-2 border-t px-4 py-1">
+      <Pairs name="Total Return" value={metric?.['Total Return']} highlight />
+      <Pairs
+        name="CAGR% (Annual Return)"
+        value={metric?.['CAGR% (Annual Return)']}
+        highlight
+      />
+      <Pairs
+        name="Excess Return"
+        value={
+          formatFloat(
+            parseFloat(metric?.['Total Return'] || '0') -
+              parseFloat(hsi?.['Total Return'] || '0')
+          ) + '%'
+        }
+        highlight
+      />
+      <Pairs name="Benchmark Return" value={hsi?.['Total Return']} highlight />
+      <Pairs name="Alpha" value={metric?.['Alpha']} />
+      <Pairs name="Beta" value={metric?.['Beta']} />
+      <Pairs name="Sharpe" value={metric?.['Sharpe']} />
+      <Pairs name="Sortino" value={metric?.['Sortino']} />
+      <Pairs name="Max Drawdown" value={metric?.['Max Drawdown']} highlight />
+      <Pairs name="Longest DD Days" value={metric?.['Longest DD Days']} />
+      <Pairs
+        name="Volatility (ann.)"
+        value={metric?.['Volatility (ann.)']}
+        highlight
+      />
+      <Pairs name="Information Ratio" value={metric?.['Information Ratio']} />
+    </div>
   );
 }
 

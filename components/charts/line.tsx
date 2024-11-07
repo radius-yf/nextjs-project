@@ -175,9 +175,11 @@ const simpleOption: EChartsOption = {
 };
 export function SimpleLineChart({
   title,
+  fmt = 'yyyy-MM-dd',
   data
 }: {
   title?: string;
+  fmt?: string | null;
   data?: {
     id: string;
     date: string;
@@ -186,12 +188,12 @@ export function SimpleLineChart({
 }) {
   const series: EChartsOption['series'] = useMemo(() => {
     if (!data) return undefined;
-    return translate(data).map(([name, data]) => ({
+    return translate(data, fmt).map(([name, data]) => ({
       type: 'line',
       name,
       data
     }));
-  }, [data]);
+  }, [data, fmt]);
   return (
     <Chart
       option={{

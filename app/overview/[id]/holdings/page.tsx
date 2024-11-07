@@ -1,6 +1,7 @@
-import { getPortfolioHoldingsDetail } from '@/api/api';
-import { getReportPortfolioHoldingsHistory } from '@/api/api-v2';
-import { genDataByHolding } from '@/api/holdings';
+import {
+  getReportPortfolioHoldingsHistory,
+  getReportPortfolioHoldingsHistoryValue
+} from '@/api/api-v2';
 import { ChartCard } from '@/components/charts/card';
 import { SimpleLineChart } from '@/components/charts/line';
 import PageContainer from '@/components/layout/page-container';
@@ -27,7 +28,7 @@ export default async function Holdings({
 }) {
   const [holdings, detail] = await Promise.all([
     getReportPortfolioHoldingsHistory(params.id, p.start, p.end),
-    getPortfolioHoldingsDetail()
+    getReportPortfolioHoldingsHistoryValue(params.id, undefined, p.start, p.end)
   ]);
   return (
     <PageContainer scrollable={true}>
@@ -91,12 +92,7 @@ export default async function Holdings({
         </ChartCard>
         <ChartCard title="Detail">
           <div className="grid grid-cols-4 gap-x-6">
-            {groupBy(
-              detail
-                .filter((i) => ['基准', '策略'].includes(i.name))
-                .flatMap((i) => genDataByHolding(i)),
-              'group'
-            )
+            {groupBy(detail, 'key_date')
               .reverse()
               .map(([date, item]) => (
                 <Link

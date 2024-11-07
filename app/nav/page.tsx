@@ -50,29 +50,25 @@ async function getData() {
 
 export default function Page() {
   // const { data } = useAsyncReducer(() => getData(), []);
-  const { data: backtest } = useAsyncReducer(getBacktestFilter, []);
   const { data: idList } = useAsyncReducer(getReportOnlineIdlist, []);
   const { data: bkList } = useAsyncReducer(getBacktestGetConfig, []);
 
   return (
     <PageContainer className="grid grid-cols-1 gap-6">
       <div className="flex justify-end">
-        {backtest && <BacktestFormDialog data={backtest}></BacktestFormDialog>}
+        <BacktestFormDialog></BacktestFormDialog>
       </div>
       {idList ? (
-        idList.map((item) => (
-          <NavCard key={item.id} id={item.id} name={item.name} />
-        ))
+        idList.map((item) => <NavCard key={item.id} {...item} />)
       ) : (
         <div>Loading...</div>
       )}
       {bkList
-        ? bkList.map((d) => (
+        ? bkList.map((item) => (
             <NavCard
-              key={d.bt_id}
-              id={d.bt_id}
-              name={d.bt_id}
-              isBacktest
+              key={item.bt_id}
+              id={item.bt_id}
+              backtest={item.data}
             ></NavCard>
           ))
         : null}
