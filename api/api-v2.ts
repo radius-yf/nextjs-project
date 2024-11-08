@@ -98,7 +98,10 @@ export async function backtestCreateProcess(bt_args: BacktestParams) {
       v2_backtest_create_process(bt_args: $bt_args, $alias)
     }`,
     'BacktestCreateProcess',
-    { bt_args: JSON.stringify(rest), alias }
+    {
+      bt_args: JSON.stringify(rest),
+      alias: alias ?? 'backtest_' + format(new Date(), 'yyyy-MM-dd HH:mm:ss')
+    }
   );
   return data.v2_backtest_create_process as string;
 }

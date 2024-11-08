@@ -4,14 +4,30 @@ import {
   getReportPortfolioValues
 } from '@/api/api-v2';
 import { RangeLineChart } from '@/components/charts/line';
+import { FormDialog } from '@/components/dialog';
+import { BacktestFormSchema } from '@/components/forms/backtest';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { useAsyncReducer } from '@/hooks/useAsyncReducer';
 import { formatFloat } from '@/lib/utils';
-import { ChevronsRight, Trash2 } from 'lucide-react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ChevronsRight, Edit3, Trash2 } from 'lucide-react';
 import { useRouter } from 'nextjs-toploader/app';
 import { stringify } from 'qs';
-import { useRef } from 'react';
+import { ForwardedRef, forwardRef, useImperativeHandle, useRef } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+type Backtest = BacktestFormSchema & {
+  alias?: string;
+};
 
 export function NavCard({
   id,
@@ -20,16 +36,30 @@ export function NavCard({
 }: {
   id: string;
   name?: string;
-  backtest?: any;
+  backtest?: string;
 }) {
   const qs = useRef<any>();
   const router = useRouter();
   const { data, loading } = useAsyncReducer(getReportPortfolioValues, [id]);
-
+  const bt = backtest ? (JSON.parse(backtest) as Backtest) : undefined;
   return (
     <Card>
       <CardHeader className="flex-wrap">
-        <CardTitle>{name}</CardTitle>
+        <div className="flex items-center">
+          <CardTitle className="pr-0">{bt?.alias ?? name}</CardTitle>
+          {bt && (
+            <FormDialog
+              content={<EditName />}
+              onSubmit={(val) => {
+                console.log(val);
+              }}
+            >
+              <Button title="edit" variant={'outline'} size="icon-sm">
+                <Edit3 />
+              </Button>
+            </FormDialog>
+          )}
+        </div>
         <div className="flex items-center gap-1 pr-4">
           {backtest && (
             <Button
@@ -65,6 +95,47 @@ export function NavCard({
     </Card>
   );
 }
+
+const formSchema = z.object({
+  name: z.string()
+});
+const EditName = forwardRef(
+  ({ name }: { name?: string }, ref: ForwardedRef<any>) => {
+    const form = useForm({
+      resolver: zodResolver(formSchema),
+      defaultValues: {
+        name: name ?? ''
+      }
+    });
+
+    useImperativeHandle(ref, () => {
+      return {
+        handleSubmit: (onSubmit: (value: any) => void) =>
+          form.handleSubmit(onSubmit)()
+      };
+    });
+    return (
+      <Form {...form}>
+        <form className="mb-4 space-y-2 [&>div]:grid [&>div]:grid-cols-[60px_1fr] [&>div]:gap-3 [&>div]:space-y-0 [&_label]:text-right">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem className="items-center">
+                <FormLabel>alias</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </form>
+      </Form>
+    );
+  }
+);
+EditName.displayName = 'EditName';
+
 function Metrics({ id }: { id: string }) {
   const { data: metrics } = useAsyncReducer(getReportPortfolioMetrics, [id]);
   const hsi = metrics?.find((m) => m.id === 'hsi');

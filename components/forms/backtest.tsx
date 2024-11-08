@@ -1,29 +1,9 @@
 'use client';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  ForwardedRef,
-  forwardRef,
-  useImperativeHandle,
-  useRef,
-  useState
-} from 'react';
-import {
-  ControllerRenderProps,
-  useForm,
-  UseFormReturn,
-  useWatch
-} from 'react-hook-form';
+import { ForwardedRef, forwardRef, useImperativeHandle } from 'react';
+import { ControllerRenderProps, useForm, useWatch } from 'react-hook-form';
 import * as z from 'zod';
-import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from '../ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '../ui/form';
 import { Input } from '../ui/input';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
@@ -34,8 +14,6 @@ import {
   SelectTrigger,
   SelectValue
 } from '../ui/select';
-import { backtestCreateProcess, getBacktestFilter } from '@/api/api-v2';
-import { useAsyncReducer } from '@/hooks/useAsyncReducer';
 
 interface BacktestProps {
   region: string[];
@@ -57,13 +35,11 @@ const formSchema = z.object({
   stock_count: z.coerce.number().min(1),
   holding_time: z.string()
 });
+export type BacktestFormSchema = z.infer<typeof formSchema>;
 
 const BacktestForm = forwardRef(
-  (
-    { data }: { data: BacktestProps },
-    ref: ForwardedRef<UseFormReturn<any>>
-  ) => {
-    const form = useForm<z.infer<typeof formSchema>>({
+  ({ data }: { data: BacktestProps }, ref: ForwardedRef<any>) => {
+    const form = useForm<BacktestFormSchema>({
       resolver: zodResolver(formSchema),
       defaultValues: {
         region: data.region[0],
@@ -80,7 +56,12 @@ const BacktestForm = forwardRef(
       control: form.control,
       name: 'region'
     });
-    useImperativeHandle(ref, () => form);
+    useImperativeHandle(ref, () => {
+      return {
+        handleSubmit: (onSubmit: (value: any) => void) =>
+          form.handleSubmit(onSubmit)()
+      };
+    });
 
     return (
       <Form {...form}>
@@ -193,38 +174,6 @@ const BacktestForm = forwardRef(
 );
 BacktestForm.displayName = 'BacktestForm';
 export { BacktestForm };
-
-export function BacktestFormDialog() {
-  const { data } = useAsyncReducer(getBacktestFilter, []);
-  const ref = useRef<UseFormReturn>(null);
-  const [open, setOpen] = useState(false);
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>Create Backtest</Button>
-      </DialogTrigger>
-      <DialogContent className="sm:min-w-[800px]">
-        <DialogHeader>
-          <DialogTitle>Create Backtest</DialogTitle>
-        </DialogHeader>
-        {data && <BacktestForm data={JSON.parse(data)} ref={ref} />}
-        <DialogFooter>
-          <Button
-            type="submit"
-            onClick={() => {
-              ref.current?.handleSubmit((val: any) => {
-                backtestCreateProcess(val);
-                setOpen(false);
-              })();
-            }}
-          >
-            Create Backtest
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 function Select({
   placeholder,
