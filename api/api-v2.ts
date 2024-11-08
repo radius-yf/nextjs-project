@@ -32,6 +32,7 @@ export async function getBacktestGetConfig() {
         bt_id
         data
         update_time
+        alias
       }
     }`,
     'BacktestGetConfig'
@@ -40,6 +41,7 @@ export async function getBacktestGetConfig() {
     bt_id: string;
     data: string;
     update_time: string;
+    alias: string;
   }[];
 }
 
@@ -104,6 +106,22 @@ export async function backtestCreateProcess(bt_args: BacktestParams) {
     }
   );
   return data.v2_backtest_create_process as string;
+}
+/**
+ * 重命名回测配置
+ */
+export async function renameBacktest(bt_id: string, alias: string) {
+  const { data } = await fetchGraphQL(
+    `query BacktestRenameConfig($bt_id: String, $alias: String) {
+      v2_backtest_rename_config(bt_id: $bt_id, alias: $alias)
+    }`,
+    'BacktestRenameConfig',
+    {
+      bt_id,
+      alias
+    }
+  );
+  return data.v2_backtest_rename_config as string;
 }
 
 /**

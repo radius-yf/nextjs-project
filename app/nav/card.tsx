@@ -1,7 +1,8 @@
 'use client';
 import {
   getReportPortfolioMetrics,
-  getReportPortfolioValues
+  getReportPortfolioValues,
+  renameBacktest
 } from '@/api/api-v2';
 import { RangeLineChart } from '@/components/charts/line';
 import { FormDialog } from '@/components/dialog';
@@ -46,12 +47,12 @@ export function NavCard({
     <Card>
       <CardHeader className="flex-wrap">
         <div className="flex items-center">
-          <CardTitle className="pr-0">{bt?.alias ?? name}</CardTitle>
+          <CardTitle className="pr-0">{name}</CardTitle>
           {bt && (
             <FormDialog
               content={<EditName />}
-              onSubmit={(val) => {
-                console.log(val);
+              onSubmit={({ name }: { name: string }) => {
+                renameBacktest(id, name);
               }}
             >
               <Button title="edit" variant={'outline'} size="icon-sm">

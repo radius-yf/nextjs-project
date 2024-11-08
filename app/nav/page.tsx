@@ -78,10 +78,13 @@ export default function Page() {
             <NavCard
               key={item.bt_id}
               id={item.bt_id}
-              name={`backtest_${format(
-                new Date(item.update_time),
-                'yyyy-MM-dd HH:mm:ss'
-              )}`}
+              name={
+                item.alias ??
+                `backtest_${format(
+                  new Date(item.update_time),
+                  'yyyy-MM-dd HH:mm:ss'
+                )}`
+              }
               backtest={item.data}
             ></NavCard>
           ))
