@@ -1,7 +1,18 @@
 'use client';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ForwardedRef, forwardRef, useImperativeHandle } from 'react';
-import { ControllerRenderProps, useForm, useWatch } from 'react-hook-form';
+import {
+  createContext,
+  ForwardedRef,
+  forwardRef,
+  useContext,
+  useImperativeHandle
+} from 'react';
+import {
+  ControllerRenderProps,
+  useForm,
+  UseFormReturn,
+  useWatch
+} from 'react-hook-form';
 import * as z from 'zod';
 import { Checkbox } from '../ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '../ui/form';
@@ -14,8 +25,9 @@ import {
   SelectTrigger,
   SelectValue
 } from '../ui/select';
+import { format } from 'date-fns/esm';
 
-interface BacktestProps {
+export interface BacktestProps {
   region: string[];
   stock_filter: Record<string, string[]>;
   industry: string[];
@@ -26,6 +38,7 @@ interface BacktestProps {
   holding_time: string[];
 }
 const formSchema = z.object({
+  alias: z.string(),
   region: z.string(),
   stock_filter: z.string(),
   industry: z.array(z.string()),
@@ -36,12 +49,26 @@ const formSchema = z.object({
   holding_time: z.string()
 });
 export type BacktestFormSchema = z.infer<typeof formSchema>;
-
+const BacktestDataContent = createContext<BacktestProps>({
+  region: [],
+  stock_filter: {},
+  industry: [],
+  rf: [],
+  strategy: [],
+  position: [],
+  stock_count: 0,
+  holding_time: []
+});
 const BacktestForm = forwardRef(
-  ({ data }: { data: BacktestProps }, ref: ForwardedRef<any>) => {
+  (
+    { initialValues }: { initialValues?: BacktestFormSchema },
+    ref: ForwardedRef<UseFormReturn<BacktestFormSchema>>
+  ) => {
+    const data = useContext(BacktestDataContent);
     const form = useForm<BacktestFormSchema>({
       resolver: zodResolver(formSchema),
-      defaultValues: {
+      defaultValues: initialValues ?? {
+        alias: `backtest_${format(new Date(), 'yyyy-MM-dd HH:mm:ss')}`,
         region: data.region[0],
         industry: data.industry,
         stock_filter: data.stock_filter[data.region[0]][0],
@@ -56,16 +83,23 @@ const BacktestForm = forwardRef(
       control: form.control,
       name: 'region'
     });
-    useImperativeHandle(ref, () => {
-      return {
-        handleSubmit: (onSubmit: (value: any) => void) =>
-          form.handleSubmit(onSubmit)()
-      };
-    });
+    useImperativeHandle(ref, () => form);
 
     return (
       <Form {...form}>
         <form className="mb-4 space-y-2 [&>div]:grid [&>div]:grid-cols-[180px_1fr] [&>div]:gap-3 [&>div]:space-y-0 [&_label]:text-right">
+          <FormField
+            control={form.control}
+            name="alias"
+            render={({ field }) => (
+              <FormItem className="items-center">
+                <FormLabel>Alias</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="region"
@@ -174,6 +208,18 @@ const BacktestForm = forwardRef(
 );
 BacktestForm.displayName = 'BacktestForm';
 export { BacktestForm };
+
+export const BacktestProvider = ({
+  value,
+  children
+}: {
+  value: BacktestProps;
+  children: React.ReactNode;
+}) => (
+  <BacktestDataContent.Provider value={value}>
+    {children}
+  </BacktestDataContent.Provider>
+);
 
 function Select({
   placeholder,

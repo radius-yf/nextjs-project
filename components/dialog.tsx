@@ -1,10 +1,9 @@
 import { DialogTrigger } from '@radix-ui/react-dialog';
 import {
-  cloneElement,
-  FunctionComponentElement,
-  isValidElement,
+  ClassAttributes,
+  ComponentType,
   ReactNode,
-  RefObject,
+  RefAttributes,
   useRef,
   useState
 } from 'react';
@@ -16,39 +15,47 @@ import {
   DialogHeader,
   DialogTitle
 } from './ui/dialog';
-type HandleSubmit = (fn: (val: any) => void) => void;
 
-interface FormDialogProps<T> {
+type Attr<T> = RefAttributes<T> | ClassAttributes<T>;
+type RefType<T> = T extends Attr<infer U> ? U : never;
+
+interface FormDialogProps<T extends Attr<unknown>> {
+  title: string;
   children: ReactNode;
   classNames?: string;
-  content?: FunctionComponentElement<{
-    ref: RefObject<{ handleSubmit: HandleSubmit }>;
-  }>;
-  onSubmit: (data: T) => void;
+  content: ComponentType<T>;
+  params?: Omit<T, 'ref'>;
+  confirm: (data: RefType<T>) => void | Promise<void>;
 }
 
-export function FormDialog<T>({
+export function FormDialog<T extends Attr<unknown>>({
+  title,
   children,
   classNames,
-  content,
-  onSubmit
+  content: Content,
+  params,
+  confirm
 }: FormDialogProps<T>) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<{ handleSubmit: HandleSubmit }>(null);
+  const ref = useRef<RefType<T>>(null);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className={classNames}>
         <DialogHeader>
-          <DialogTitle>Create Backtest</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        {isValidElement(content) && cloneElement(content, { ref: ref })}
+        {Content && <Content {...(params as any)} ref={ref} />}
         <DialogFooter>
           <Button
             type="submit"
             onClick={() => {
-              ref.current?.handleSubmit(onSubmit);
-              setOpen(false);
+              const result = confirm(ref.current!);
+              if (result instanceof Promise) {
+                result.then(() => setOpen(false));
+              } else {
+                setOpen(false);
+              }
             }}
           >
             submit

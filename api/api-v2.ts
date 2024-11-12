@@ -1,8 +1,7 @@
 'use server';
+import { groupBy } from '@/lib/data-conversion';
 import { format } from 'date-fns/esm';
 import { fetchGraphQL } from './fetch';
-import { groupBy } from '@/lib/data-conversion';
-import { zip } from '@/lib/utils';
 
 /**
  * 实盘id列表
@@ -72,14 +71,14 @@ export async function getBacktestGetMultiProcessStatus(pid_list: string[]) {
     'BacktestGetMultiProcessStatus',
     { pid_list }
   );
-  return zip(pid_list, data.v2_backtest_get_multi_process_status as string[]);
+  return data.v2_backtest_get_multi_process_status as string[];
 }
 
 export interface BacktestParams {
-  alias: string;
+  alias?: string;
   region: string;
-  start_date: string;
-  end_date: string;
+  start_date?: string;
+  end_date?: string;
   stock_filter: string;
   rf: string;
   strategy: string;
@@ -97,12 +96,12 @@ export async function backtestCreateProcess(bt_args: BacktestParams) {
   const { alias, ...rest } = bt_args;
   const { data } = await fetchGraphQL(
     `query BacktestCreateProcess($bt_args: String!, $alias: String) {
-      v2_backtest_create_process(bt_args: $bt_args, $alias)
+      v2_backtest_create_process(bt_args: $bt_args, alias: $alias)
     }`,
     'BacktestCreateProcess',
     {
       bt_args: JSON.stringify(rest),
-      alias: alias ?? 'backtest_' + format(new Date(), 'yyyy-MM-dd HH:mm:ss')
+      alias
     }
   );
   return data.v2_backtest_create_process as string;
@@ -522,4 +521,15 @@ export async function getReportPortfolioHoldingsHistoryValue(
     date: string;
     value: number;
   }[];
+}
+
+export async function getReportPortfolioNextHoldings(id: string) {
+  const { data } = await fetchGraphQL(
+    `query ReportPortfolioNextHoldings($id: String!) {
+      v2_report_portfolio_next_holdings(id: $id)
+    }`,
+    'ReportPortfolioNextHoldings',
+    { id }
+  );
+  return data.v2_report_portfolio_next_holdings;
 }

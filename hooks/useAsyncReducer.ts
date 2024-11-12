@@ -7,7 +7,7 @@ export function useAsyncReducer<T extends unknown[], R>(
 ) {
   const [status, setStatus] = useState({
     data: initialState,
-    loading: !initialState,
+    loading: args && !initialState,
     error: undefined as Error | undefined
   });
 

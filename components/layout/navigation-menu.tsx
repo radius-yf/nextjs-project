@@ -16,6 +16,10 @@ const menus = [
   {
     path: 'holdings',
     name: 'Holdings持仓明细'
+  },
+  {
+    path: 'next',
+    name: '下期股票清单'
   }
   // {
   //   path: '/simulator',

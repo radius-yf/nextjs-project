@@ -1,31 +1,24 @@
 'use client';
 import {
+  backtestCreateProcess,
   getReportPortfolioMetrics,
   getReportPortfolioValues,
   renameBacktest
 } from '@/api/api-v2';
 import { RangeLineChart } from '@/components/charts/line';
 import { FormDialog } from '@/components/dialog';
-import { BacktestFormSchema } from '@/components/forms/backtest';
+import { BacktestForm, BacktestFormSchema } from '@/components/forms/backtest';
+import { EditName } from '@/components/forms/edit-name';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { useAsyncReducer } from '@/hooks/useAsyncReducer';
 import { formatFloat } from '@/lib/utils';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ChevronsRight, Edit3, Trash2 } from 'lucide-react';
+import { ChevronsRight, Edit3, FileStack, Trash2 } from 'lucide-react';
 import { useRouter } from 'nextjs-toploader/app';
 import { stringify } from 'qs';
-import { ForwardedRef, forwardRef, useImperativeHandle, useRef } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { UseFormReturn } from 'react-hook-form';
+import { useNavItems } from './items';
 type Backtest = BacktestFormSchema & {
   alias?: string;
 };
@@ -33,47 +26,25 @@ type Backtest = BacktestFormSchema & {
 export function NavCard({
   id,
   name,
-  backtest
+  className
 }: {
   id: string;
-  name?: string;
-  backtest?: string;
+  name: string;
+  className?: string;
 }) {
   const qs = useRef<any>();
   const router = useRouter();
   const { data, loading } = useAsyncReducer(getReportPortfolioValues, [id]);
-  const bt = backtest ? (JSON.parse(backtest) as Backtest) : undefined;
+  const { data: metrics } = useAsyncReducer(getReportPortfolioMetrics, [id]);
   return (
-    <Card>
+    <Card className={className}>
       <CardHeader className="flex-wrap">
         <div className="flex items-center">
           <CardTitle className="pr-0">{name}</CardTitle>
-          {bt && (
-            <FormDialog
-              content={<EditName />}
-              onSubmit={({ name }: { name: string }) => {
-                renameBacktest(id, name);
-              }}
-            >
-              <Button title="edit" variant={'outline'} size="icon-sm">
-                <Edit3 />
-              </Button>
-            </FormDialog>
-          )}
         </div>
         <div className="flex items-center gap-1 pr-4">
-          {backtest && (
-            <Button
-              title="delete"
-              className="text-destructive hover:text-destructive"
-              variant="outline"
-              size="icon-sm"
-            >
-              <Trash2 />
-            </Button>
-          )}
           <Button
-            title="jump to details"
+            title="Jump to details"
             className="text-primary hover:text-primary"
             variant="outline"
             size="icon-sm"
@@ -84,7 +55,7 @@ export function NavCard({
             <ChevronsRight size={32} />
           </Button>
         </div>
-        <Metrics id={id} />
+        <Metrics metrics={metrics} />
       </CardHeader>
       <CardContent className="pt-2">
         <RangeLineChart
@@ -97,48 +68,132 @@ export function NavCard({
   );
 }
 
-const formSchema = z.object({
-  name: z.string()
-});
-const EditName = forwardRef(
-  ({ name }: { name?: string }, ref: ForwardedRef<any>) => {
-    const form = useForm({
-      resolver: zodResolver(formSchema),
-      defaultValues: {
-        name: name ?? ''
-      }
-    });
+export function BacktestCard({
+  id,
+  name: title,
+  backtest,
+  status
+}: {
+  id: string;
+  name: string;
+  backtest: string;
+  status: string;
+}) {
+  const qs = useRef<any>();
+  const router = useRouter();
+  const handleZoom = useCallback((ev: any) => (qs.current = ev), []);
+  const handleJump = useCallback(() => {
+    router.push(`/overview/${id}/home?${stringify(qs.current)}`);
+  }, [id, router]);
 
-    useImperativeHandle(ref, () => {
-      return {
-        handleSubmit: (onSubmit: (value: any) => void) =>
-          form.handleSubmit(onSubmit)()
-      };
-    });
-    return (
-      <Form {...form}>
-        <form className="mb-4 space-y-2 [&>div]:grid [&>div]:grid-cols-[60px_1fr] [&>div]:gap-3 [&>div]:space-y-0 [&_label]:text-right">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem className="items-center">
-                <FormLabel>alias</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        </form>
-      </Form>
-    );
-  }
-);
-EditName.displayName = 'EditName';
+  const {
+    data,
+    loading,
+    fetchData: fetchValues
+  } = useAsyncReducer(getReportPortfolioValues);
+  const { data: metrics, fetchData: fetchMetrics } = useAsyncReducer(
+    getReportPortfolioMetrics
+  );
+  const bt = JSON.parse(backtest) as Backtest;
+  useEffect(() => {
+    if (status === 'done') {
+      fetchValues(id);
+      fetchMetrics(id);
+    }
+  }, [fetchMetrics, fetchValues, id, status]);
 
-function Metrics({ id }: { id: string }) {
-  const { data: metrics } = useAsyncReducer(getReportPortfolioMetrics, [id]);
+  const [alias, setAlias] = useState(title);
+  const changeAlias = useCallback(
+    (ref: UseFormReturn<{ name: string }>) => {
+      ref.handleSubmit(({ name }) => {
+        renameBacktest(id, name);
+        setAlias(name);
+      })();
+    },
+    [id]
+  );
+
+  const { refresh, search } = useNavItems();
+  const createBacktest = useCallback(
+    (ref: UseFormReturn<BacktestFormSchema>) => {
+      ref.handleSubmit((data) => {
+        backtestCreateProcess(data);
+        refresh();
+      })();
+    },
+    [refresh]
+  );
+  return (
+    <Card className={search && alias.includes(search) ? 'hidden' : ''}>
+      <CardHeader className="flex-wrap">
+        <div className="flex items-center">
+          <CardTitle className="pr-0">{alias}</CardTitle>
+          <FormDialog
+            title="Modify the Alias"
+            content={EditName}
+            params={useMemo(() => ({ name: alias }), [alias])}
+            confirm={changeAlias}
+          >
+            <Button title="edit" variant={'outline'} size="icon-sm">
+              <Edit3 />
+            </Button>
+          </FormDialog>
+        </div>
+        <div className="flex items-center gap-1 pr-4">
+          <FormDialog
+            title="Create from ..."
+            classNames="sm:min-w-[800px]"
+            confirm={createBacktest}
+            content={BacktestForm}
+            params={{
+              initialValues: {
+                ...bt,
+                alias: `${alias} Copy`
+              }
+            }}
+          >
+            <Button title="Create from ..." variant="outline" size="icon-sm">
+              <FileStack />
+            </Button>
+          </FormDialog>
+          <Button
+            title="Delete"
+            className="text-destructive hover:text-destructive"
+            variant="outline"
+            size="icon-sm"
+          >
+            <Trash2 />
+          </Button>
+          <Button
+            title="Jump to details"
+            className="text-primary hover:text-primary"
+            variant="outline"
+            size="icon-sm"
+            onClick={handleJump}
+          >
+            <ChevronsRight size={32} />
+          </Button>
+        </div>
+        <Metrics metrics={metrics} />
+      </CardHeader>
+      <CardContent className="pt-2">
+        <RangeLineChart
+          loading={loading}
+          data={data}
+          onZoomChange={handleZoom}
+        />
+      </CardContent>
+    </Card>
+  );
+}
+
+function Metrics({
+  metrics
+}: {
+  metrics?: (Record<string, string> & {
+    id: string;
+  })[];
+}) {
   const hsi = metrics?.find((m) => m.id === 'hsi');
   const metric = metrics?.find((m) => m.id !== 'hsi');
   return (
