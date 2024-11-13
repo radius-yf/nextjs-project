@@ -523,6 +523,25 @@ export async function getReportPortfolioHoldingsHistoryValue(
   }[];
 }
 
+interface ReportPortfolioNextHoldings {
+  sec_name: string;
+  ticker: string;
+  industry: string;
+  score: number;
+  close: number;
+  pb: number;
+  pe: number;
+  ps: number;
+  evebitda: number;
+  pc: number;
+  sy: number;
+  ret_m3: number;
+  ret_m6: number;
+  ca_liab: number;
+  cash_liab: number;
+  total_debt_ebitda: number;
+  net_debt_equity: number;
+}
 export async function getReportPortfolioNextHoldings(id: string) {
   const { data } = await fetchGraphQL(
     `query ReportPortfolioNextHoldings($id: String!) {
@@ -531,5 +550,7 @@ export async function getReportPortfolioNextHoldings(id: string) {
     'ReportPortfolioNextHoldings',
     { id }
   );
-  return data.v2_report_portfolio_next_holdings;
+  return JSON.parse(
+    data.v2_report_portfolio_next_holdings
+  ) as ReportPortfolioNextHoldings[];
 }
