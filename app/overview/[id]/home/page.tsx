@@ -31,10 +31,10 @@ export default async function Overview({
     <PageContainer>
       <div className="grid gap-6 [&>.grid]:gap-6">
         <div className="grid grid-cols-[1fr_2fr]">
-          <ChartCard>
+          <ChartCard title="Market Value">
             <PieChart data={percent} />
           </ChartCard>
-          <ChartCard>
+          <ChartCard title="Returns">
             <LineChart data={values} />
           </ChartCard>
         </div>

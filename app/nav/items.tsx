@@ -56,7 +56,7 @@ export function CardItems() {
     <>
       {data?.map((item) => (
         <NavCard
-          className={search && item.name.includes(search) ? 'hidden' : ''}
+          className={!search || item.name.includes(search) ? '' : 'hidden'}
           key={item.id}
           {...item}
         />

@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { registerTheme } from 'echarts';
 import EChartsReact, { EChartsReactProps } from 'echarts-for-react';
 import { useTheme } from 'next-themes';
-import { forwardRef, useMemo } from 'react';
+import { useMemo } from 'react';
 import darkTheme from './chart-theme-dark.json';
 import lightTheme from './chart-theme-light.json';
 
@@ -18,14 +18,13 @@ function getBrowserTheme(theme: string | undefined) {
   return theme;
 }
 
-const Chart = forwardRef<EChartsReact, EChartsReactProps>((props, ref) => {
+export default function Chart(props: EChartsReactProps) {
   const { style: _, className, ...rest } = props;
   const { theme: _theme } = useTheme();
   const theme = useMemo(() => getBrowserTheme(_theme), [_theme]);
 
   return (
     <EChartsReact
-      ref={ref}
       className={cn(['min-h-[300px]', className])}
       style={{ height: undefined }}
       theme={theme}
@@ -38,6 +37,4 @@ const Chart = forwardRef<EChartsReact, EChartsReactProps>((props, ref) => {
       {...rest}
     ></EChartsReact>
   );
-});
-Chart.displayName = 'Chart';
-export default Chart;
+}

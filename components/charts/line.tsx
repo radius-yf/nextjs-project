@@ -1,9 +1,9 @@
 'use client';
 import { debounce } from '@/lib/utils';
 import { Duration } from 'date-fns';
-import { format, sub } from 'date-fns/esm';
+import { format, startOfYear, sub } from 'date-fns/esm';
 import { ECharts, EChartsOption } from 'echarts';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Chart from './chart';
 import { translate } from './chart-util';
 
@@ -98,8 +98,11 @@ export function RangeLineChart({
       data
     }));
   }, [data, fmt]);
-  const ref = useRef<ECharts>();
 
+  const ref = useRef<ECharts>();
+  const ready = useCallback((instance: ECharts) => {
+    ref.current = instance;
+  }, []);
   useEffect(() => {
     if (series) {
       const handler = debounce((param: any) => {
@@ -128,28 +131,85 @@ export function RangeLineChart({
               });
         ref.current?.setOption({ series: s }, false);
       });
-      ref.current!.on('dataZoom', handler);
-      ref.current!.setOption({ series });
-      ref.current!.dispatchAction({
+      ref.current?.on('dataZoom', handler);
+      ref.current?.dispatchAction({
         type: 'dataZoom',
-        start: calculateStart(series?.[0].data.map(([d]) => d) ?? [], {
-          years: 3
-        })
+        start: calculateStart(
+          series[0].data.map(([d]) => d),
+          { years: 3 }
+        )
       });
     }
   }, [series, onZoomChange]);
+  const onTabChange = useCallback(
+    (value: Duration | Date | null) => {
+      ref.current?.dispatchAction({
+        type: 'dataZoom',
+        start: calculateStart(series?.[0].data.map(([d]) => d) ?? [], value)
+      });
+    },
+    [series]
+  );
   return (
-    <Chart
-      option={option}
-      showLoading={loading}
-      className="min-h-[300px]"
-      notMerge={true}
-      onChartReady={(instance: ECharts) => {
-        ref.current = instance;
-      }}
-    />
+    <div>
+      <CheckButton onTabChange={onTabChange} />
+      <Chart
+        option={useMemo(
+          () => ({
+            ...option,
+            dataZoom: [{ type: 'inside' }, { type: 'slider' }],
+            series
+          }),
+          [series]
+        )}
+        showLoading={loading}
+        className="min-h-[300px]"
+        onChartReady={ready}
+      />
+    </div>
   );
 }
+const options = [
+  { name: '5D', value: { days: 5 } },
+  { name: '1M', value: { months: 1 } },
+  { name: '6M', value: { months: 6 } },
+  { name: 'YTD', value: startOfYear(new Date()) },
+  { name: '1Y', value: { years: 1 } },
+  { name: '3Y', value: { years: 3 } },
+  { name: '5Y', value: { years: 5 } },
+  { name: '10Y', value: { years: 10 } },
+  { name: 'MAX', value: null }
+];
+const CheckButton = ({
+  onTabChange
+}: {
+  onTabChange?: (value: any) => void;
+}) => {
+  const [active, setActive] = useState('3Y');
+  const onClick = useCallback(
+    (i: { name: string; value: any }) => () => {
+      setActive(i.name);
+      onTabChange?.(i.value);
+    },
+    [onTabChange]
+  );
+  return (
+    <div className="flex">
+      <div className="flex gap-2 rounded-md border border-primary-foreground/10 ">
+        {options.map((i) => (
+          <button
+            key={i.name}
+            data-active={i.name === active}
+            className="px-2 text-left data-[active=true]:bg-muted"
+            onClick={onClick(i)}
+          >
+            {i.name}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const simpleOption: EChartsOption = {
   xAxis: {
@@ -207,9 +267,16 @@ export function SimpleLineChart({
   );
 }
 
-function calculateStart(dateData: string[], subOptions: Duration): number {
-  const currentDate = new Date();
-  const subtractedDate = sub(currentDate, subOptions); // 根据传入的 sub 参数减去对应的时间
+function calculateStart(
+  dateData: string[],
+  subOptions: Duration | Date | null
+): number {
+  if (!subOptions) {
+    return 0;
+  }
+  const endDate = new Date(dateData[dateData.length - 1]);
+  const subtractedDate =
+    subOptions instanceof Date ? subOptions : sub(endDate, subOptions); // 根据传入的 sub 参数减去对应的时间
   const subtractedDateString = format(subtractedDate, 'yyyy-MM-dd'); // 转换为 'YYYY-MM-DD' 格式
 
   const startIndex = dateData.findIndex((date) => date >= subtractedDateString);

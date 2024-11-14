@@ -124,7 +124,7 @@ export function BacktestCard({
     [refresh]
   );
   return (
-    <Card className={search && alias.includes(search) ? 'hidden' : ''}>
+    <Card className={!search || alias.includes(search) ? '' : 'hidden'}>
       <CardHeader className="flex-wrap">
         <div className="flex items-center">
           <CardTitle className="pr-0">{alias}</CardTitle>
