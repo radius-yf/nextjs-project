@@ -72,7 +72,7 @@ export function BacktestItems() {
   );
   useEffect(() => {
     if (data && data.length > 0) {
-      const timer = setInterval(async () => {
+      const fn = async () => {
         const allStatus = await getBacktestGetMultiProcessStatus(
           data.map((item) => item.bt_id)
         );
@@ -92,7 +92,9 @@ export function BacktestItems() {
         if (allStatus.every((s) => s !== 'processing')) {
           clearInterval(timer);
         }
-      }, 5000);
+      };
+      fn();
+      const timer = setInterval(fn, 5000);
       return () => clearInterval(timer);
     }
   }, [data]);

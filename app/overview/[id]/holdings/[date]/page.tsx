@@ -6,6 +6,7 @@ import { LineChart } from '@/components/charts/line';
 import PageContainer from '@/components/layout/page-container';
 import { groupBy } from '@/lib/data-conversion';
 import { format } from 'date-fns/esm';
+import { stringify } from 'qs';
 
 export default async function HoldingsPage({
   params,
@@ -36,8 +37,11 @@ export default async function HoldingsPage({
       <div className="grid grid-cols-1 gap-6 pb-16">
         <Breadcrumbs
           items={[
-            { title: 'Holdings', link: '/holdings' },
-            { title: d, link: `/holdings/${params.date}` }
+            {
+              title: 'Holdings',
+              link: '../holdings?' + stringify(searchParams)
+            },
+            { title: d, link: '' }
           ]}
         />
 
