@@ -61,7 +61,10 @@ export function NavCard({
         <RangeLineChart
           loading={loading}
           data={data}
-          onZoomChange={(ev) => (qs.current = ev)}
+          onZoomChange={useCallback(
+            (ev: { start?: string; end?: string }) => (qs.current = ev),
+            []
+          )}
         />
       </CardContent>
     </Card>
