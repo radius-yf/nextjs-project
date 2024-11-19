@@ -143,14 +143,9 @@ export function RangeLineChart({
         const p = param.batch?.[0] ? param.batch[0] : param;
         const data = series?.[0].data ?? [];
 
-        const startIndex = Math.round((p.start / 100) * data.length - 1);
-        const endIndex = Math.round((p.end / 100) * data.length - 1);
-        console.log(
-          p.start,
-          startIndex,
-          data[startIndex]?.[0],
-          (startIndex * 100) / data.length
-        );
+        const startIndex = Math.round((p.start / 100) * (data.length - 1));
+        const endIndex = Math.round((p.end / 100) * (data.length - 1));
+
         setRange({
           start: p.start,
           end: p.end,
