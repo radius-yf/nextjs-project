@@ -122,6 +122,19 @@ export async function renameBacktest(bt_id: string, alias: string) {
   );
   return data.v2_backtest_rename_config as string;
 }
+/**
+ * 删除回测配置
+ */
+export async function deleteBacktest(bt_ids: string[]) {
+  const { data } = await fetchGraphQL(
+    `query BacktestDeleteConfig($bt_ids: [String]) {
+      v2_backtest_delete_config(bt_ids: $bt_ids)
+    }`,
+    'BacktestDeleteConfig',
+    { bt_ids }
+  );
+  return data.v2_backtest_delete_config as string;
+}
 
 /**
  * 投资组合累计收益率(vs基准数据)
@@ -542,6 +555,9 @@ interface ReportPortfolioNextHoldings {
   total_debt_ebitda: number;
   net_debt_equity: number;
 }
+/**
+ * 投资组合下期买入列表
+ */
 export async function getReportPortfolioNextHoldings(id: string) {
   const { data } = await fetchGraphQL(
     `query ReportPortfolioNextHoldings($id: String!) {

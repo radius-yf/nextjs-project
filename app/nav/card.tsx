@@ -1,6 +1,7 @@
 'use client';
 import {
   backtestCreateProcess,
+  deleteBacktest,
   getReportPortfolioMetrics,
   getReportPortfolioValues,
   renameBacktest
@@ -126,6 +127,12 @@ export function BacktestCard({
     },
     [refresh]
   );
+
+  const handleDelete = useCallback(() => {
+    deleteBacktest([id]).then(() => {
+      refresh();
+    });
+  }, [id, refresh]);
   return (
     <Card className={!search || alias.includes(search) ? '' : 'hidden'}>
       <CardHeader className="flex-wrap">
@@ -164,6 +171,7 @@ export function BacktestCard({
             className="text-destructive hover:text-destructive"
             variant="outline"
             size="icon-sm"
+            onClick={handleDelete}
           >
             <Trash2 />
           </Button>

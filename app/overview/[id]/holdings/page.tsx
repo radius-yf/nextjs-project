@@ -28,13 +28,7 @@ export default async function Holdings({
 }) {
   const [holdings, detail] = await Promise.all([
     getReportPortfolioHoldingsHistory(params.id, p.start, p.end),
-    getReportPortfolioHoldingsHistoryValue(
-      params.id,
-      undefined,
-      p.start,
-      p.end,
-      '30d'
-    )
+    getReportPortfolioHoldingsHistoryValue(params.id, undefined, p.start, p.end)
   ]);
   return (
     <PageContainer scrollable={true}>

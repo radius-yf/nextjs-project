@@ -4,7 +4,6 @@ import { BarChart } from '@/components/charts/bar';
 import { ChartCard } from '@/components/charts/card';
 import { LineChart } from '@/components/charts/line';
 import PageContainer from '@/components/layout/page-container';
-import { groupBy } from '@/lib/data-conversion';
 import { format } from 'date-fns/esm';
 import { stringify } from 'qs';
 
@@ -19,16 +18,15 @@ export default async function HoldingsPage({
     params.id,
     [params.date],
     searchParams.start,
-    searchParams.end
+    searchParams.end,
+    '5d'
   );
-
-  const barData = groupBy(data, 'id').map(([_, item]) =>
-    item.map((i, index) => ({
-      id: i.id,
-      date: i.date,
-      value:
-        index === 0 ? i.value : (i.value + 1) / (item[index - 1].value + 1) - 1
-    }))
+  const month = await getReportPortfolioHoldingsHistoryValue(
+    params.id,
+    [params.date],
+    searchParams.start,
+    searchParams.end,
+    '30d'
   );
 
   const d = format(new Date(params.date), 'yyyy-MM');
@@ -49,7 +47,7 @@ export default async function HoldingsPage({
           <LineChart data={data} />
         </ChartCard>
         <ChartCard title="月度对比图">
-          <BarChart data={barData.flat()} />
+          <BarChart data={month} />
         </ChartCard>
       </div>
     </PageContainer>
