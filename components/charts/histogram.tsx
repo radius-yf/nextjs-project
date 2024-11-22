@@ -4,7 +4,7 @@ import { EChartsOption } from 'echarts';
 import { useMemo } from 'react';
 import Chart from './chart';
 
-const PERCENTAGE_INTERVAL = 2;
+const PERCENTAGE_INTERVAL = 1;
 
 const option: EChartsOption = {
   grid: {
@@ -120,3 +120,11 @@ function eliminateOutliers<
   }
   return data;
 }
+
+// 正态分布概率密度函数
+// function normalPDF(x, mean, stdDev) {
+//   return (
+//     (1 / (stdDev * Math.sqrt(2 * Math.PI))) *
+//     Math.exp(-0.5 * Math.pow((x - mean) / stdDev, 2))
+//   );
+// }

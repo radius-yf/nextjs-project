@@ -107,7 +107,7 @@ export default async function Analysis({
             return { data };
           }}
         />
-        <ChartCard title="Worst 10 Drawdowns">
+        <ChartCard title="Drawdowns">
           <ReactTable
             data={drawdowns}
             columns={[
@@ -128,37 +128,6 @@ export default async function Analysis({
             />
           </div>
         </ChartCard>
-        {/* <ChartCard title="Cumulative Returns vs Benchmark">
-          <LineChart data={values} />
-        </ChartCard>
-        <ChartCard title="EOY Returns vs Benchmark">
-          <BarChart data={returnsY} />
-        </ChartCard>
-        <ChartCard title="Monthly Returns">
-          <BarChart data={returnsM} />
-        </ChartCard>
-        <ChartCard title="Cumulative Returns vs Benchmark (Volatility Matched)">
-          <LineChart data={volatility} />
-        </ChartCard>
-        <ChartCard title="Rolling Beta to Benchmark">
-          <LineChart data={beta} />
-        </ChartCard>
-        <ChartCard title="EOY Returns vs Benchmark">
-          <div className="flex gap-6">
-            <DataTable
-              data={returnsY.map((i) => ({
-                ...i,
-                value: (i.value * 100).toFixed(2) + '%'
-              }))}
-              groupKey="date"
-              groupName="Year"
-              split={3}
-            />
-          </div>
-        </ChartCard>
-        <ChartCard title="Boxplot">
-          <Boxplot />
-        </ChartCard> */}
       </div>
     </PageContainer>
   );
