@@ -7,7 +7,7 @@ import {
   renameBacktest
 } from '@/api/api-v2';
 import { RangeLineChart } from '@/components/charts/line';
-import { FormDialog } from '@/components/dialog';
+import { ConfirmDialog, FormDialog } from '@/components/dialog';
 import { BacktestForm, BacktestFormSchema } from '@/components/forms/backtest';
 import { EditName } from '@/components/forms/edit-name';
 import { Button } from '@/components/ui/button';
@@ -166,7 +166,18 @@ export function BacktestCard({
               <FileStack />
             </Button>
           </FormDialog>
-          <Button
+          <ConfirmDialog
+            title="Delete Backtest"
+            text="Are you sure you want to delete this backtest?"
+            type="destructive"
+            confirmText="Delete"
+            confirm={handleDelete}
+          >
+            <Button title="Delete" variant="outline" size="icon-sm">
+              <Trash2 />
+            </Button>
+          </ConfirmDialog>
+          {/* <Button
             title="Delete"
             className="text-destructive hover:text-destructive"
             variant="outline"
@@ -174,7 +185,7 @@ export function BacktestCard({
             onClick={handleDelete}
           >
             <Trash2 />
-          </Button>
+          </Button> */}
           <Button
             title="Jump to details"
             className="text-primary hover:text-primary"

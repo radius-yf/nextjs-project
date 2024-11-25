@@ -4,6 +4,7 @@ import {
   ComponentType,
   ReactNode,
   RefAttributes,
+  useCallback,
   useRef,
   useState
 } from 'react';
@@ -59,6 +60,47 @@ export function FormDialog<T extends Attr<unknown>>({
             }}
           >
             submit
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function ConfirmDialog({
+  title,
+  text,
+  type,
+  confirmText,
+  children,
+  classNames,
+  confirm
+}: {
+  title: string;
+  text: string;
+  type: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost';
+  confirmText?: string;
+  children: ReactNode;
+  classNames?: string;
+  confirm: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const onConfirm = useCallback(() => {
+    confirm();
+    setOpen(false);
+  }, [confirm]);
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className={classNames}>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <div>{text}</div>
+        <DialogFooter>
+          <Button onClick={() => setOpen(false)}>Cancel</Button>
+          <Button type="submit" variant={type} onClick={onConfirm}>
+            {confirmText ?? 'Confirm'}
           </Button>
         </DialogFooter>
       </DialogContent>

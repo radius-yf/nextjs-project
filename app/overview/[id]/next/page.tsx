@@ -16,13 +16,17 @@ export default async function Page({
           <CardTitle>下期持仓</CardTitle>
         </CardHeader>
         <CardContent>
-          <ReactTable
-            columns={Object.keys(data[0]).map((k) => ({
-              accessorKey: k,
-              header: k
-            }))}
-            data={data}
-          />
+          {data.length === 0 ? (
+            <div>无数据</div>
+          ) : (
+            <ReactTable
+              columns={Object.keys(data[0]).map((k) => ({
+                accessorKey: k,
+                header: k
+              }))}
+              data={data}
+            />
+          )}
         </CardContent>
       </Card>
     </PageContainer>
