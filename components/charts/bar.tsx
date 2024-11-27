@@ -53,6 +53,7 @@ const option: EChartsOption = {
 
 export function BarChart({
   data,
+  customTranslate,
   loading
 }: {
   data?: {
@@ -60,12 +61,18 @@ export function BarChart({
     date: string;
     value: number;
   }[];
+  customTranslate?: (data: [string, number][]) => [string, number][];
   loading?: boolean;
 }) {
   const series = useMemo(() => {
     if (!data) return undefined;
+    const d = customTranslate
+      ? translate(data).map(
+          ([name, data]) => [name, customTranslate(data)] as const
+        )
+      : translate(data);
 
-    return translate(data).map(
+    return d.map(
       ([name, data]) =>
         ({
           type: 'bar',
@@ -75,7 +82,7 @@ export function BarChart({
           barCategoryGap: '50%'
         }) as EChartsOption['series']
     );
-  }, [data]);
+  }, [data, customTranslate]);
   return (
     <Chart
       option={{ ...option, series }}

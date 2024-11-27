@@ -97,7 +97,10 @@ export default async function Holdings({
               .map(([date, item]) => (
                 <Link
                   key={date}
-                  href={`./holdings/${format(new Date(date), 'yyyy-MM-dd')}`}
+                  href={[
+                    `./holdings/${format(new Date(date), 'yyyy-MM-dd')}`,
+                    stringify(p)
+                  ].join('?')}
                 >
                   <SimpleLineChart
                     title={format(new Date(date), 'yyyy-MM')}

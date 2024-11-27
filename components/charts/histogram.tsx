@@ -1,7 +1,7 @@
 'use client';
 
 import { EChartsOption } from 'echarts';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Chart from './chart';
 
 const PERCENTAGE_INTERVAL = 1;
@@ -42,13 +42,21 @@ const option: EChartsOption = {
       show: false
     }
   },
-  yAxis: {
-    type: 'value',
-    axisLine: {
-      onZero: false
+  yAxis: [
+    {
+      type: 'value',
+      axisLine: {
+        onZero: false
+      }
+    },
+    {
+      type: 'value',
+      show: false,
+      axisLine: {
+        onZero: false
+      }
     }
-  },
-  legend: {}
+  ]
 };
 
 export function HistogramChart({
@@ -60,7 +68,10 @@ export function HistogramChart({
     value: number;
   }[];
 }) {
-  const series = useMemo(() => {
+  const [legendVisible, setLegendVisible] = useState<Record<string, boolean>>(
+    {}
+  );
+  const op = useMemo(() => {
     if (!data) return [];
 
     const val = Object.entries(
@@ -74,27 +85,66 @@ export function HistogramChart({
       }))
       .toSorted((a, b) => a.x - b.x);
     const result = eliminateOutliers(val);
+    // const result = val;
 
-    return Array.from(new Set(data.map((d) => d.id))).map((name, index) => ({
+    const series1: EChartsOption['series'] = Array.from(
+      new Set(data.map((d) => d.id))
+    ).map((name, index) => ({
       type: 'bar',
       name,
-      data: result.map((d) => [
-        d.x * PERCENTAGE_INTERVAL + PERCENTAGE_INTERVAL / 2,
-        d.data[name]?.length ?? 0
-      ]),
+      data: result.map(
+        (d) =>
+          [
+            d.x * PERCENTAGE_INTERVAL + PERCENTAGE_INTERVAL / 2,
+            d.data[name]?.length ?? 0
+          ] as const
+      ),
       barGap: '-100%',
       barWidth: '99%',
       itemStyle: {
         opacity: index === 0 ? 1 : 0.8
       }
     }));
-  }, [data]);
+
+    return {
+      legend: {
+        data: series1.map((s) => s.name),
+        selected: legendVisible
+      },
+      series: series1.concat(
+        series1.map((s) => ({
+          type: 'line',
+          name: s.name + ' norm',
+          data: norm(s.data as any),
+          yAxisIndex: 1,
+          smooth: true,
+          showSymbol: legendVisible[s.name!] === false ? false : true,
+          lineStyle: {
+            opacity: legendVisible[s.name!] === false ? 0 : 1
+          },
+          tooltip: {
+            // show: false
+          }
+        }))
+      )
+    };
+  }, [data, legendVisible]);
+
+  const onEvents = useMemo(
+    () => ({
+      legendselectchanged: (event: any) => {
+        setLegendVisible(event.selected);
+      }
+    }),
+    []
+  );
 
   return (
     <Chart
-      option={{ ...option, series }}
+      option={{ ...option, ...op }}
       notMerge
       className="min-h-[500px]"
+      onEvents={onEvents}
     ></Chart>
   );
 }
@@ -121,10 +171,16 @@ function eliminateOutliers<
   return data;
 }
 
-// 正态分布概率密度函数
-// function normalPDF(x, mean, stdDev) {
-//   return (
-//     (1 / (stdDev * Math.sqrt(2 * Math.PI))) *
-//     Math.exp(-0.5 * Math.pow((x - mean) / stdDev, 2))
-//   );
-// }
+function norm(data: [number, number][]) {
+  const mean = data.reduce((a, [_, b]) => a + b, 0) / data.length;
+  const std = Math.sqrt(
+    data.reduce((a, [_, b]) => a + (b - mean) ** 2, 0) / data.length
+  );
+  return data.map(([x]) => [x, normalPDF(x + 1, mean, std)]);
+}
+function normalPDF(x: number, mean: number, stdDev: number) {
+  return (
+    (1 / (stdDev * Math.sqrt(2 * Math.PI))) *
+    Math.exp(-0.5 * Math.pow((x - mean) / stdDev, 2))
+  );
+}
