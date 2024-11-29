@@ -1,6 +1,6 @@
 import { getReportPortfolioHoldingsHistoryValue } from '@/api/api-v2';
 import { Breadcrumbs } from '@/components/breadcrumbs';
-import { BarChart } from '@/components/charts/bar';
+import { MonthlyBarChart } from '@/components/charts/bar';
 import { ChartCard } from '@/components/charts/card';
 import { LineChart } from '@/components/charts/line';
 import PageContainer from '@/components/layout/page-container';
@@ -47,7 +47,7 @@ export default async function HoldingsPage({
           <LineChart data={data} />
         </ChartCard>
         <ChartCard title="月度对比图">
-          <BarChart data={month} />
+          <MonthlyBarChart data={month} />
         </ChartCard>
       </div>
     </PageContainer>

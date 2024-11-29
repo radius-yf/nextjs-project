@@ -1,9 +1,14 @@
 'use client';
 import { EChartsOption } from 'echarts';
 import { useMemo } from 'react';
-import { translate } from './chart-util';
 import Chart from './chart';
 import { formatFloat } from '@/lib/utils';
+import { groupBy } from '@/lib/data-conversion';
+interface Data {
+  id: string;
+  date: string;
+  value: number;
+}
 
 const option: EChartsOption = {
   grid: {
@@ -50,34 +55,28 @@ const option: EChartsOption = {
     valueFormatter: (value) => `${Number(value).toFixed(2)}%`
   }
 };
-
 export function BarChart({
   data,
   customTranslate,
   loading
 }: {
-  data?: {
-    id: string;
-    date: string;
-    value: number;
-  }[];
-  customTranslate?: (data: [string, number][]) => [string, number][];
+  data?: Data[];
+  customTranslate?: (data: Data[]) => Data[];
   loading?: boolean;
 }) {
   const series = useMemo(() => {
     if (!data) return undefined;
-    const d = customTranslate
-      ? translate(data).map(
-          ([name, data]) => [name, customTranslate(data)] as const
-        )
-      : translate(data);
+    const d = groupBy(data, 'id').map(
+      ([name, data]) =>
+        [name, customTranslate ? customTranslate(data) : data] as const
+    );
 
     return d.map(
       ([name, data]) =>
         ({
           type: 'bar',
           name,
-          data,
+          data: data.map((d) => [d.date, d.value * 100]),
           barGap: '0%',
           barCategoryGap: '50%'
         }) as EChartsOption['series']
@@ -91,6 +90,25 @@ export function BarChart({
       showLoading={loading}
     />
   );
+}
+const monthData = (data: Data[]) => {
+  const [f, ...o] = data;
+  return o.reduce(
+    (a, b, i) => {
+      a.push({ ...b, value: (b.value + 1) / (data[i].value + 1) - 1 });
+      return a;
+    },
+    [f]
+  );
+};
+export function MonthlyBarChart({
+  data,
+  loading
+}: {
+  data?: Data[];
+  loading?: boolean;
+}) {
+  return <BarChart data={data} customTranslate={monthData} loading={loading} />;
 }
 
 const option2: EChartsOption = {
@@ -119,10 +137,7 @@ const option2: EChartsOption = {
 export function InvestmentDistribution({
   data
 }: {
-  data: {
-    id: string;
-    value: number;
-  }[];
+  data: Omit<Data, 'date'>[];
 }) {
   const series = useMemo(() => {
     if (!data) return undefined;
@@ -134,13 +149,7 @@ export function InvestmentDistribution({
         formatter: ({ value: [val] }: { value: [number, string] }) =>
           `${formatFloat(val * 100)}%`
       },
-      data: data.reverse().map(({ id, value }) => [
-        value,
-        id
-        // `${id} ${formatFloat(value * 100)
-        //   .toString()
-        //   .padStart(12, ' ')}%`
-      ])
+      data: data.reverse().map(({ id, value }) => [value, id])
     };
   }, [data]);
   return (

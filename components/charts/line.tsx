@@ -8,6 +8,15 @@ import Chart from './chart';
 import { translate } from './chart-util';
 import { groupBy } from '@/lib/data-conversion';
 
+interface LineChartProps {
+  data?: {
+    id: string;
+    date: string;
+    value: number;
+  }[];
+  fmt?: string | null;
+  loading?: boolean;
+}
 const option: EChartsOption = {
   grid: {
     top: 32,
@@ -51,15 +60,6 @@ const option: EChartsOption = {
     valueFormatter: (value) => `${Number(value).toFixed(2)}%`
   }
 };
-interface LineChartProps {
-  data?: {
-    id: string;
-    date: string;
-    value: number;
-  }[];
-  fmt?: string | null;
-  loading?: boolean;
-}
 export function LineChart({
   data,
   fmt = 'yyyy-MM-dd',
@@ -82,7 +82,6 @@ export function LineChart({
     />
   );
 }
-
 export function RangeLineChart({
   data,
   fmt = 'yyyy-MM-dd',
@@ -188,47 +187,62 @@ export function RangeLineChart({
     </div>
   );
 }
-const options = [
-  { name: '5D', value: { days: 5 } },
-  { name: '1M', value: { months: 1 } },
-  { name: '6M', value: { months: 6 } },
-  { name: 'YTD', value: startOfYear(new Date()) },
-  { name: '1Y', value: { years: 1 } },
-  { name: '3Y', value: { years: 3 } },
-  { name: '5Y', value: { years: 5 } },
-  { name: '10Y', value: { years: 10 } },
-  { name: 'MAX', value: null }
-];
-const CheckButton = ({
-  onTabChange
-}: {
-  onTabChange?: (value: any) => void;
-}) => {
-  const [active, setActive] = useState('3Y');
-  const onClick = useCallback(
-    (i: { name: string; value: any }) => () => {
-      setActive(i.name);
-      onTabChange?.(i.value);
+
+const baseOption: EChartsOption = {
+  grid: {
+    top: 32,
+    left: 64,
+    right: 12
+  },
+  xAxis: {
+    type: 'category',
+    boundaryGap: false,
+    axisPointer: {
+      type: 'line'
+    }
+  },
+  yAxis: {
+    type: 'value',
+    axisLine: {
+      show: false
     },
-    [onTabChange]
-  );
-  return (
-    <div className="flex">
-      <div className="flex gap-2 rounded-md border border-primary-foreground/10 ">
-        {options.map((i) => (
-          <button
-            key={i.name}
-            data-active={i.name === active}
-            className="px-2 text-left data-[active=true]:bg-muted"
-            onClick={onClick(i)}
-          >
-            {i.name}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
+    axisTick: {
+      show: false
+    },
+    axisPointer: {
+      show: false
+    }
+  },
+  tooltip: {
+    trigger: 'axis'
+  }
 };
+export function BaseLineChart({
+  data,
+  title
+}: {
+  title?: string;
+  data?: {
+    date: string;
+    value: number;
+  }[];
+}) {
+  const series = useMemo(() => {
+    if (!data) return undefined;
+    return {
+      type: 'line',
+      data: data.map(
+        (d) => [format(new Date(d.date), 'yyyy-MM-dd'), d.value] as const
+      )
+    };
+  }, [data]);
+  return (
+    <Chart
+      option={{ ...baseOption, title: { left: 'center', text: title }, series }}
+      notMerge={true}
+    />
+  );
+}
 
 const simpleOption: EChartsOption = {
   xAxis: {
@@ -308,3 +322,45 @@ function calculateStart(
   const startPercent = startIndex / endIndex;
   return { start: startPercent * 100, startIndex };
 }
+
+const options = [
+  { name: '5D', value: { days: 5 } },
+  { name: '1M', value: { months: 1 } },
+  { name: '6M', value: { months: 6 } },
+  { name: 'YTD', value: startOfYear(new Date()) },
+  { name: '1Y', value: { years: 1 } },
+  { name: '3Y', value: { years: 3 } },
+  { name: '5Y', value: { years: 5 } },
+  { name: '10Y', value: { years: 10 } },
+  { name: 'MAX', value: null }
+];
+const CheckButton = ({
+  onTabChange
+}: {
+  onTabChange?: (value: any) => void;
+}) => {
+  const [active, setActive] = useState('3Y');
+  const onClick = useCallback(
+    (i: { name: string; value: any }) => () => {
+      setActive(i.name);
+      onTabChange?.(i.value);
+    },
+    [onTabChange]
+  );
+  return (
+    <div className="flex">
+      <div className="flex gap-2 rounded-md border border-primary-foreground/10 ">
+        {options.map((i) => (
+          <button
+            key={i.name}
+            data-active={i.name === active}
+            className="px-2 text-left data-[active=true]:bg-muted"
+            onClick={onClick(i)}
+          >
+            {i.name}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};

@@ -1,13 +1,19 @@
 'use client';
 import { useAsyncReducer } from '@/hooks/useAsyncReducer';
 import { ComponentPropsWithoutRef, useMemo, useState } from 'react';
-import { LineChart } from './charts/line';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { BarChart } from './charts/bar';
+import { BaseLineChart, LineChart } from './charts/line';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 
 type Mapper = {
   LineChart: ComponentPropsWithoutRef<typeof LineChart>;
+  BaseLineChart: ComponentPropsWithoutRef<typeof BaseLineChart>;
   BarChart: ComponentPropsWithoutRef<typeof BarChart>;
+};
+const mapper = {
+  LineChart,
+  BaseLineChart,
+  BarChart
 };
 
 interface TabCardProps<C extends keyof Mapper> {
@@ -20,14 +26,8 @@ interface TabCardProps<C extends keyof Mapper> {
 }
 
 function getComponent<C extends keyof Mapper>(render: C, props?: Mapper[C]) {
-  switch (render) {
-    case 'LineChart':
-      return <LineChart {...props} />;
-    case 'BarChart':
-      return <BarChart {...props} />;
-    default:
-      return null;
-  }
+  const Component: any = mapper[render];
+  return <Component {...props} />;
 }
 
 export function TabCard<C extends keyof Mapper>({
@@ -50,6 +50,9 @@ export function TabCard<C extends keyof Mapper>({
     initialData
   );
   const [index, setIndex] = useState(tabIndex ?? 0);
+  const Comp = useMemo(() => {
+    return getComponent(render, { ...data, loading } as any);
+  }, [data, loading, render]);
   return (
     <Card>
       <CardHeader>
@@ -72,7 +75,7 @@ export function TabCard<C extends keyof Mapper>({
           </div>
         ) : null}
       </CardHeader>
-      <CardContent>{getComponent(render, { ...data, loading })}</CardContent>
+      <CardContent>{Comp}</CardContent>
     </Card>
   );
 }

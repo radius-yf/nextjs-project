@@ -393,6 +393,36 @@ export async function getReportPortfolioHoldingsIndustry(
 }
 
 /**
+ * 投资组合回撤Underwater数据
+ */
+export async function getReportPortfolioDdUnderwater(
+  id: string,
+  start_date?: Date | string,
+  end_date?: Date | string
+) {
+  const { data } = await fetchGraphQL(
+    `query ReportPortfolioDdUnderwater($id: String!, $start_date: timestamp, $end_date: timestamp) {
+      v2_report_portfolio_dd_underwater(id: $id, start_date: $start_date, end_date: $end_date) {
+        date
+        value
+      }
+    }`,
+    'ReportPortfolioDdUnderwater',
+    {
+      id,
+      start_date: start_date
+        ? format(new Date(start_date), 'yyyy-MM-dd')
+        : undefined,
+      end_date: end_date ? format(new Date(end_date), 'yyyy-MM-dd') : undefined
+    }
+  );
+  return data.v2_report_portfolio_dd_underwater as {
+    date: string;
+    value: number;
+  }[];
+}
+
+/**
  * 投资组合回撤区间(Drawdowns)
  */
 export async function getReportPortfolioDrawdowns(

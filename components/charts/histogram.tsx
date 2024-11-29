@@ -1,8 +1,9 @@
 'use client';
 
 import { EChartsOption } from 'echarts';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import Chart from './chart';
+import { groupBy } from '@/lib/data-conversion';
 
 const PERCENTAGE_INTERVAL = 1;
 
@@ -11,6 +12,7 @@ const option: EChartsOption = {
     left: 64,
     right: 12
   },
+  legend: {},
   tooltip: {
     trigger: 'axis',
     formatter: (params) => {
@@ -68,10 +70,7 @@ export function HistogramChart({
     value: number;
   }[];
 }) {
-  const [legendVisible, setLegendVisible] = useState<Record<string, boolean>>(
-    {}
-  );
-  const op = useMemo(() => {
+  const series = useMemo(() => {
     if (!data) return [];
 
     const val = Object.entries(
@@ -84,67 +83,61 @@ export function HistogramChart({
         data: Object.groupBy(v!, (d) => d.id)
       }))
       .toSorted((a, b) => a.x - b.x);
-    const result = eliminateOutliers(val);
-    // const result = val;
-
-    const series1: EChartsOption['series'] = Array.from(
-      new Set(data.map((d) => d.id))
-    ).map((name, index) => ({
+    const series1 = Array.from(new Set(data.map((d) => d.id))).map((name) => ({
       type: 'bar',
       name,
-      data: result.map(
+      data: eliminateOutliers(val).map(
         (d) =>
           [
             d.x * PERCENTAGE_INTERVAL + PERCENTAGE_INTERVAL / 2,
             d.data[name]?.length ?? 0
-          ] as const
+          ] as [number, number]
       ),
       barGap: '-100%',
       barWidth: '99%',
       itemStyle: {
-        opacity: index === 0 ? 1 : 0.8
+        opacity: 0.7
+      }
+    }));
+    const line = groupBy(data, 'id').reduce(
+      (acc, [name, items]) => ({
+        ...acc,
+        [name]: norm(items.map((d) => d.value))
+      }),
+      {} as Record<string, { mean: number; std: number }>
+    );
+    const series2 = series1.map((s) => ({
+      type: 'line',
+      name: s.name,
+      data: s.data.map(([x]) => [
+        x - PERCENTAGE_INTERVAL / 2,
+        normalPDF(
+          (x - PERCENTAGE_INTERVAL / 2) / 100,
+          line[s.name].mean,
+          line[s.name].std
+        )
+      ]),
+      xAxisIndex: 0,
+      yAxisIndex: 1,
+      smooth: true,
+      showSymbol: false,
+      lineStyle: {
+        shadowBlur: 4,
+        shadowColor: 'rgba(255, 255, 255, 0.7)'
+      },
+      tooltip: {
+        show: false
       }
     }));
 
-    return {
-      legend: {
-        data: series1.map((s) => s.name),
-        selected: legendVisible
-      },
-      series: series1.concat(
-        series1.map((s) => ({
-          type: 'line',
-          name: s.name + ' norm',
-          data: norm(s.data as any),
-          yAxisIndex: 1,
-          smooth: true,
-          showSymbol: legendVisible[s.name!] === false ? false : true,
-          lineStyle: {
-            opacity: legendVisible[s.name!] === false ? 0 : 1
-          },
-          tooltip: {
-            // show: false
-          }
-        }))
-      )
-    };
-  }, [data, legendVisible]);
-
-  const onEvents = useMemo(
-    () => ({
-      legendselectchanged: (event: any) => {
-        setLegendVisible(event.selected);
-      }
-    }),
-    []
-  );
+    return [...series1, ...series2];
+  }, [data]);
 
   return (
     <Chart
-      option={{ ...option, ...op }}
+      option={{ ...option, series }}
       notMerge
       className="min-h-[500px]"
-      onEvents={onEvents}
     ></Chart>
   );
 }
@@ -171,12 +164,12 @@ function eliminateOutliers<
   return data;
 }
 
-function norm(data: [number, number][]) {
-  const mean = data.reduce((a, [_, b]) => a + b, 0) / data.length;
+function norm(data: number[]) {
+  const mean = data.reduce((a, b) => a + b, 0) / data.length;
   const std = Math.sqrt(
-    data.reduce((a, [_, b]) => a + (b - mean) ** 2, 0) / data.length
+    data.reduce((a, b) => a + (b - mean) ** 2, 0) / data.length
   );
-  return data.map(([x]) => [x, normalPDF(x + 1, mean, std)]);
+  return { mean, std };
 }
 function normalPDF(x: number, mean: number, stdDev: number) {
   return (

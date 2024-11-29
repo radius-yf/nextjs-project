@@ -1,4 +1,5 @@
 import {
+  getReportPortfolioDdUnderwater,
   getReportPortfolioDrawdowns,
   getReportPortfolioMetricsRowData,
   getReportPortfolioReturns,
@@ -8,6 +9,7 @@ import {
 import { ChartCard } from '@/components/charts/card';
 import { HeatChart } from '@/components/charts/heat';
 import { HistogramChart } from '@/components/charts/histogram';
+import { BaseLineChart } from '@/components/charts/line';
 import PageContainer from '@/components/layout/page-container';
 import { TabCard } from '@/components/tab-card';
 import { DataTable, ReactTable } from '@/components/tables/table';
@@ -20,12 +22,13 @@ export default async function Analysis({
   params: { id: string };
   searchParams: { start: string; end: string };
 }) {
-  const [values, returnsY, returnsM, beta, drawdowns, metrics] =
+  const [values, returnsY, returnsM, beta, underwater, drawdowns, metrics] =
     await Promise.all([
       getReportPortfolioValues(params.id, p.start, p.end, ''),
       getReportPortfolioReturns(params.id, 'y', p.start, p.end),
       getReportPortfolioReturns(params.id, 'm', p.start, p.end),
       getReportPortfolioRollingIndicator(params.id, p.start, p.end, 'beta'),
+      getReportPortfolioDdUnderwater(params.id, p.start, p.end),
       getReportPortfolioDrawdowns(params.id, p.start, p.end),
       getReportPortfolioMetricsRowData(params.id, p.start, p.end)
     ]);
@@ -94,7 +97,7 @@ export default async function Analysis({
             { name: 'Sharpe', value: 'sharpe' },
             { name: 'Sortino', value: 'sortino' }
           ]}
-          render="LineChart"
+          render="BaseLineChart"
           initialData={{ data: beta }}
           getData={async (val) => {
             'use server';
@@ -108,15 +111,18 @@ export default async function Analysis({
           }}
         />
         <ChartCard title="Drawdowns">
-          <ReactTable
-            data={drawdowns}
-            columns={[
-              { accessorKey: 'Start', header: 'Started' },
-              { accessorKey: 'End', header: 'Ended' },
-              { accessorKey: 'Drawdown', header: 'Drawdown' },
-              { accessorKey: 'Days', header: 'Days' }
-            ]}
-          />
+          <div className="grid grid-cols-2 gap-6">
+            <BaseLineChart data={underwater} title="Underwater Plot" />
+            <ReactTable
+              data={drawdowns}
+              columns={[
+                { accessorKey: 'Start', header: 'Started' },
+                { accessorKey: 'End', header: 'Ended' },
+                { accessorKey: 'Drawdown', header: 'Drawdown' },
+                { accessorKey: 'Days', header: 'Days' }
+              ]}
+            />
+          </div>
         </ChartCard>
         <ChartCard title="Key Performance Metrics">
           <div className="grid grid-cols-3 gap-6">
