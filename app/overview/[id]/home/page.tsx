@@ -1,4 +1,4 @@
-import { getPortfolioSummary } from '@/api/api';
+// import { getPortfolioSummary } from '@/api/api';
 import {
   getReportPortfolioHoldingsIndustry,
   getReportPortfolioHoldingsPercent,
@@ -19,12 +19,12 @@ export default async function Overview({
   params: { id: string };
   searchParams: { start: string; end: string };
 }) {
-  const [keyRatios, percent, industry, values, summary] = await Promise.all([
+  const [keyRatios, percent, industry, values] = await Promise.all([
     getReportPortfolioKeyRatios(params.id, p.start, p.end),
     getReportPortfolioHoldingsPercent(params.id, p.start, p.end),
     getReportPortfolioHoldingsIndustry(params.id, p.start, p.end),
-    getReportPortfolioValues(params.id, p.start, p.end),
-    getPortfolioSummary(params.id)
+    getReportPortfolioValues(params.id, p.start, p.end)
+    // getPortfolioSummary(params.id)
   ]);
 
   return (
@@ -44,7 +44,7 @@ export default async function Overview({
         <ChartCard title="行业市值分布">
           <InvestmentDistribution data={industry} />
         </ChartCard>
-        <ChartCard title="总策略加权指标">
+        {/* <ChartCard title="总策略加权指标">
           <div className="columns-3">
             {summary.map(([title, items]) => (
               <div key={title} className="break-inside-avoid pb-4 pr-6">
@@ -65,7 +65,7 @@ export default async function Overview({
               </div>
             ))}
           </div>
-        </ChartCard>
+        </ChartCard> */}
       </div>
     </PageContainer>
   );

@@ -1,5 +1,5 @@
 'use client';
-import { debounce } from '@/lib/utils';
+import { debounce, deepMerge } from '@/lib/utils';
 import { Duration } from 'date-fns';
 import { format, startOfYear, sub } from 'date-fns/esm';
 import { ECharts, EChartsOption } from 'echarts';
@@ -17,35 +17,47 @@ interface LineChartProps {
   fmt?: string | null;
   loading?: boolean;
 }
-const option: EChartsOption = {
-  grid: {
-    top: 32,
-    left: 64,
-    right: 12
-  },
-  xAxis: {
-    type: 'category',
-    boundaryGap: false,
-    axisPointer: {
-      type: 'line'
-    }
-  },
+function generateOption(option: EChartsOption): EChartsOption {
+  return deepMerge(
+    {
+      grid: {
+        top: 32,
+        left: 64,
+        right: 12
+      },
+      xAxis: {
+        type: 'category',
+        boundaryGap: false,
+        axisPointer: {
+          type: 'line'
+        }
+      },
+      yAxis: {
+        type: 'value',
+        axisLine: {
+          show: false
+        },
+        axisTick: {
+          show: false
+        },
+        axisPointer: {
+          show: false
+        }
+      },
+      tooltip: {
+        trigger: 'axis'
+      }
+    },
+    option
+  );
+}
+const option = generateOption({
+  legend: {},
   yAxis: {
-    type: 'value',
-    axisLine: {
-      show: false
-    },
-    axisTick: {
-      show: false
-    },
     axisLabel: {
       formatter: '{value}%'
-    },
-    axisPointer: {
-      show: false
     }
   },
-  legend: {},
   dataZoom: [
     {
       type: 'inside',
@@ -56,10 +68,9 @@ const option: EChartsOption = {
     }
   ],
   tooltip: {
-    trigger: 'axis',
     valueFormatter: (value) => `${Number(value).toFixed(2)}%`
   }
-};
+});
 export function LineChart({
   data,
   fmt = 'yyyy-MM-dd',
@@ -188,35 +199,7 @@ export function RangeLineChart({
   );
 }
 
-const baseOption: EChartsOption = {
-  grid: {
-    top: 32,
-    left: 64,
-    right: 12
-  },
-  xAxis: {
-    type: 'category',
-    boundaryGap: false,
-    axisPointer: {
-      type: 'line'
-    }
-  },
-  yAxis: {
-    type: 'value',
-    axisLine: {
-      show: false
-    },
-    axisTick: {
-      show: false
-    },
-    axisPointer: {
-      show: false
-    }
-  },
-  tooltip: {
-    trigger: 'axis'
-  }
-};
+const baseOption = generateOption({});
 export function BaseLineChart({
   data,
   title
@@ -239,6 +222,46 @@ export function BaseLineChart({
   return (
     <Chart
       option={{ ...baseOption, title: { left: 'center', text: title }, series }}
+      notMerge={true}
+    />
+  );
+}
+
+const areaOption = generateOption({
+  yAxis: {
+    axisLabel: {
+      formatter: '{value}%'
+    }
+  },
+  tooltip: {
+    valueFormatter: (value) => `${Number(value).toFixed(2)}%`
+  }
+});
+export function AreaLineChart({
+  data,
+  title
+}: {
+  title?: string;
+  data?: {
+    date: string;
+    value: number;
+  }[];
+}) {
+  const series = useMemo(() => {
+    if (!data) return undefined;
+    return {
+      type: 'line',
+      areaStyle: {
+        opacity: 0.5
+      },
+      data: data.map(
+        (d) => [format(new Date(d.date), 'yyyy-MM-dd'), d.value * 100] as const
+      )
+    };
+  }, [data]);
+  return (
+    <Chart
+      option={{ ...areaOption, title: { left: 'center', text: title }, series }}
       notMerge={true}
     />
   );

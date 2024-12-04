@@ -26,7 +26,7 @@ export default async function HoldingsPage({
     [params.date],
     searchParams.start,
     searchParams.end,
-    '30d'
+    'ME'
   );
 
   const d = format(new Date(params.date), 'yyyy-MM');

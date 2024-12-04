@@ -36,3 +36,16 @@ export function zip<T, U>(arr1: T[], arr2: U[]): Array<[T, U]> {
 
   return result;
 }
+
+export function deepMerge(...objects: any[]): any {
+  return objects.reduce((acc, obj) => {
+    for (const key in obj) {
+      if (typeof obj[key] === 'object' && obj[key] !== null) {
+        acc[key] = deepMerge(acc[key], obj[key]);
+      } else {
+        acc[key] = obj[key];
+      }
+    }
+    return acc;
+  }, {});
+}

@@ -9,7 +9,7 @@ import {
 import { ChartCard } from '@/components/charts/card';
 import { HeatChart } from '@/components/charts/heat';
 import { HistogramChart } from '@/components/charts/histogram';
-import { BaseLineChart } from '@/components/charts/line';
+import { AreaLineChart } from '@/components/charts/line';
 import PageContainer from '@/components/layout/page-container';
 import { TabCard } from '@/components/tab-card';
 import { DataTable, ReactTable } from '@/components/tables/table';
@@ -112,7 +112,7 @@ export default async function Analysis({
         />
         <ChartCard title="Drawdowns">
           <div className="grid grid-cols-2 gap-6">
-            <BaseLineChart data={underwater} title="Underwater Plot" />
+            <AreaLineChart data={underwater} title="Underwater Plot" />
             <ReactTable
               data={drawdowns}
               columns={[
