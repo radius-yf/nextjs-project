@@ -18,7 +18,9 @@ export default function PageContainer({
           <div className={cn('h-full p-4 md:px-8', className)}>{children}</div>
         </ScrollArea>
       ) : (
-        <div className={cn('h-full p-4 md:px-8', className)}>{children}</div>
+        <div className={cn('flex flex-1 flex-col p-4 md:px-8', className)}>
+          {children}
+        </div>
       )}
     </>
   );

@@ -1,12 +1,19 @@
 'use client';
+import { group } from '@/lib/data-conversion';
 import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
+  getSortedRowModel,
+  SortingState,
   useReactTable
 } from '@tanstack/react-table';
-import { useMemo } from 'react';
+import {
+  ArrowDownUp,
+  ArrowDownWideNarrow,
+  ArrowUpNarrowWide
+} from 'lucide-react';
+import { useMemo, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -15,7 +22,6 @@ import {
   TableHeader,
   TableRow
 } from '../ui/table';
-import { group } from '@/lib/data-conversion';
 
 function splitArray<T>(array: T[], n: number) {
   const result = [];
@@ -72,15 +78,18 @@ export function ReactTable<TData extends unknown, TValue>({
   columns: ColumnDef<TData, TValue>[];
   data: any[];
 }) {
+  const [sorting, setSorting] = useState<SortingState>([]);
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel()
+    getSortedRowModel: getSortedRowModel(),
+    onSortingChange: setSorting,
+    state: { sorting }
   });
   return (
-    <Table>
-      <TableHeader>
+    <Table className="relative overflow-auto">
+      <TableHeader className="sticky top-0">
         {table.getHeaderGroups().map((headerGroup) => (
           <TableRow key={headerGroup.id}>
             {headerGroup.headers.map((header) => {
@@ -104,6 +113,8 @@ export function ReactTable<TData extends unknown, TValue>({
             <TableRow
               key={row.id}
               data-state={row.getIsSelected() && 'selected'}
+              className="data-[highlight=true]:bg-yellow-500/10"
+              data-highlight={row.original._highlight_ === 1}
             >
               {row.getVisibleCells().map((cell) => (
                 <TableCell key={cell.id}>
@@ -121,5 +132,47 @@ export function ReactTable<TData extends unknown, TValue>({
         )}
       </TableBody>
     </Table>
+  );
+}
+
+const genHeader = (title: string) => {
+  const HeaderComponent: ColumnDef<any, any>['header'] = ({ column }) => {
+    return (
+      <div className="flex items-center justify-between gap-1">
+        <span>{title}</span>
+        {column.getCanSort() && (
+          <div
+            onClick={() => column.toggleSorting()}
+            className="cursor-pointer"
+          >
+            {column.getIsSorted() === 'asc' ? (
+              <ArrowUpNarrowWide size={14} />
+            ) : column.getIsSorted() === 'desc' ? (
+              <ArrowDownWideNarrow size={14} />
+            ) : (
+              <ArrowDownUp size={14} />
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+  return HeaderComponent;
+};
+
+export function SortTable({ data }: { data: any[] }) {
+  return (
+    <ReactTable
+      columns={Object.keys(data[0])
+        .filter((key) => !key.startsWith('_'))
+        .map(
+          (key) =>
+            ({
+              accessorKey: key,
+              header: genHeader(key)
+            }) as ColumnDef<any, any>
+        )}
+      data={data}
+    />
   );
 }
