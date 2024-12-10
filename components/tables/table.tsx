@@ -113,7 +113,7 @@ export function ReactTable<TData extends unknown, TValue>({
             <TableRow
               key={row.id}
               data-state={row.getIsSelected() && 'selected'}
-              className="data-[highlight=true]:bg-yellow-500/10"
+              className="data-[highlight=true]:bg-green-500/30"
               data-highlight={row.original._highlight_ === 1}
             >
               {row.getVisibleCells().map((cell) => (

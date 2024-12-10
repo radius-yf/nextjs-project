@@ -1,8 +1,9 @@
-// import { getPortfolioSummary } from '@/api/api';
 import {
+  getReportPortfolioDescribe,
   getReportPortfolioHoldingsIndustry,
   getReportPortfolioHoldingsPercent,
   getReportPortfolioKeyRatios,
+  getReportPortfolioSummary,
   getReportPortfolioValues
 } from '@/api/api-v2';
 import { InvestmentDistribution } from '@/components/charts/bar';
@@ -11,6 +12,7 @@ import { KeyRatios } from '@/components/charts/key-ratios';
 import { LineChart } from '@/components/charts/line';
 import { PieChart } from '@/components/charts/pie';
 import PageContainer from '@/components/layout/page-container';
+import { MarkdownViewer } from '@/components/markdown';
 
 export default async function Overview({
   params,
@@ -19,17 +21,20 @@ export default async function Overview({
   params: { id: string };
   searchParams: { start: string; end: string };
 }) {
-  const [keyRatios, percent, industry, values] = await Promise.all([
-    getReportPortfolioKeyRatios(params.id, p.start, p.end),
-    getReportPortfolioHoldingsPercent(params.id, p.start, p.end),
-    getReportPortfolioHoldingsIndustry(params.id, p.start, p.end),
-    getReportPortfolioValues(params.id, p.start, p.end)
-    // getPortfolioSummary(params.id)
-  ]);
+  const [desc, keyRatios, percent, industry, values, summary] =
+    await Promise.all([
+      getReportPortfolioDescribe(params.id),
+      getReportPortfolioKeyRatios(params.id, p.start, p.end),
+      getReportPortfolioHoldingsPercent(params.id, p.start, p.end),
+      getReportPortfolioHoldingsIndustry(params.id, p.start, p.end),
+      getReportPortfolioValues(params.id, p.start, p.end),
+      getReportPortfolioSummary(params.id, p.start, p.end)
+    ]);
 
   return (
     <PageContainer>
       <div className="grid gap-6 [&>.grid]:gap-6">
+        <MarkdownViewer content={desc} />
         <div className="grid grid-cols-[1fr_2fr]">
           <ChartCard title="Market Value">
             <PieChart data={percent} />
@@ -44,7 +49,7 @@ export default async function Overview({
         <ChartCard title="行业市值分布">
           <InvestmentDistribution data={industry} />
         </ChartCard>
-        {/* <ChartCard title="总策略加权指标">
+        <ChartCard title="总策略加权指标">
           <div className="columns-3">
             {summary.map(([title, items]) => (
               <div key={title} className="break-inside-avoid pb-4 pr-6">
@@ -65,7 +70,7 @@ export default async function Overview({
               </div>
             ))}
           </div>
-        </ChartCard> */}
+        </ChartCard>
       </div>
     </PageContainer>
   );

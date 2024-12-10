@@ -2,6 +2,7 @@
 import { groupBy } from '@/lib/data-conversion';
 import { format } from 'date-fns/esm';
 import { fetchGraphQL } from './fetch';
+import { generateSummary } from './summary';
 
 /**
  * 实盘id列表
@@ -599,4 +600,45 @@ export async function getReportPortfolioNextHoldings(id: string) {
   return JSON.parse(
     data.v2_report_portfolio_next_holdings
   ) as ReportPortfolioNextHoldings[];
+}
+
+/**
+ * 投资组合加权基本指标(summary)
+ */
+export async function getReportPortfolioSummary(
+  id: string,
+  start_date?: Date | string,
+  end_date?: Date | string
+) {
+  const { data } = await fetchGraphQL(
+    `query ReportPortfolioSummary($id: String!, $start_date: timestamp, $end_date: timestamp) {
+      v2_report_portfolio_summary(id: $id, start_date: $start_date, end_date: $end_date) {
+        key
+        value
+      }
+    }`,
+    'ReportPortfolioSummary',
+    {
+      id,
+      start_date: start_date
+        ? format(new Date(start_date), 'yyyy-MM-dd')
+        : undefined,
+      end_date: end_date ? format(new Date(end_date), 'yyyy-MM-dd') : undefined
+    }
+  );
+  return generateSummary(data.v2_report_portfolio_summary);
+}
+
+/**
+ * 投资组合流程描述
+ */
+export async function getReportPortfolioDescribe(id: string) {
+  const { data } = await fetchGraphQL(
+    `query ReportPortfolioDescribe($id: String! ) {
+      v2_report_portfolio_describe(id: $id)
+    }`,
+    'ReportPortfolioDescribe',
+    { id }
+  );
+  return data.v2_report_portfolio_describe as string;
 }
