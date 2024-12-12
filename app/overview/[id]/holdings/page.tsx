@@ -13,7 +13,6 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
-import { H1, P } from '@/components/ui/typography';
 import { groupBy } from '@/lib/data-conversion';
 import { format } from 'date-fns/esm';
 import Link from 'next/link';
@@ -33,15 +32,6 @@ export default async function Holdings({
   return (
     <PageContainer scrollable={true}>
       <div className="grid grid-cols-1 gap-6 pb-16">
-        <div>
-          <H1>Portfolio Holdings</H1>
-          <P className="mb-8 w-1/2">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto ut
-            unde repudiandae, libero nemo incidunt atque adipisci assumenda
-            cumque, voluptatum possimus eos dignissimos natus vitae expedita
-            beatae explicabo iure porro.
-          </P>
-        </div>
         <ChartCard title="Portfolio Holdings">
           <Table>
             <TableHeader>

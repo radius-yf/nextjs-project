@@ -16,7 +16,20 @@ export default async function Page({
           <CardTitle>下期持仓</CardTitle>
         </CardHeader>
         <CardContent className="flex overflow-auto">
-          {data.length === 0 ? <div>无数据</div> : <SortTable data={data} />}
+          {data.length === 0 ? (
+            <div>无数据</div>
+          ) : (
+            <SortTable
+              data={data}
+              columns={Object.keys(data[0])
+                .filter((key) => !key.startsWith('_'))
+                .map((key) => ({
+                  accessorKey: key,
+                  header: key,
+                  sortable: true
+                }))}
+            />
+          )}
         </CardContent>
       </Card>
     </PageContainer>

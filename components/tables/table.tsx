@@ -160,18 +160,19 @@ const genHeader = (title: string) => {
   return HeaderComponent;
 };
 
-export function SortTable({ data }: { data: any[] }) {
+export function SortTable({
+  data,
+  columns
+}: {
+  data: any[];
+  columns: { accessorKey: string; header: string; sortable?: boolean }[];
+}) {
   return (
     <ReactTable
-      columns={Object.keys(data[0])
-        .filter((key) => !key.startsWith('_'))
-        .map(
-          (key) =>
-            ({
-              accessorKey: key,
-              header: genHeader(key)
-            }) as ColumnDef<any, any>
-        )}
+      columns={columns.map((c) => ({
+        accessorKey: c.accessorKey,
+        header: c.sortable ? genHeader(c.header) : c.header
+      }))}
       data={data}
     />
   );

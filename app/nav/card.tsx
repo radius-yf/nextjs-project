@@ -35,7 +35,13 @@ export function NavCard({
 }) {
   const qs = useRef<any>();
   const router = useRouter();
-  const { data, loading } = useAsyncReducer(getReportPortfolioValues, [id]);
+  const { data, loading } = useAsyncReducer(getReportPortfolioValues, [
+    id,
+    undefined,
+    undefined,
+    '',
+    '2d'
+  ]);
   const { data: metrics } = useAsyncReducer(getReportPortfolioMetrics, [id]);
   return (
     <Card className={className}>
@@ -101,7 +107,7 @@ export function BacktestCard({
   const bt = JSON.parse(backtest) as Backtest;
   useEffect(() => {
     if (status === 'done') {
-      fetchValues(id);
+      fetchValues(id, undefined, undefined, '', '2d');
       fetchMetrics(id);
     }
   }, [fetchMetrics, fetchValues, id, status]);
@@ -209,6 +215,10 @@ export function BacktestCard({
   );
 }
 
+function isMarket(id: string) {
+  return id !== 'backtest' && !/^\w{2}_/.test(id);
+}
+
 function Metrics({
   metrics
 }: {
@@ -216,8 +226,9 @@ function Metrics({
     id: string;
   })[];
 }) {
-  const hsi = metrics?.find((m) => m.id === 'hsi');
-  const metric = metrics?.find((m) => m.id !== 'hsi');
+  const base = metrics?.find((d) => isMarket(d.id));
+  const metric = metrics?.find((d) => !isMarket(d.id));
+
   return (
     <div className="mb-4 grid w-full grid-cols-6 gap-x-2 border-t px-4 py-1">
       <Pairs name="Total Return" value={metric?.['Total Return']} highlight />
@@ -231,12 +242,12 @@ function Metrics({
         value={
           formatFloat(
             parseFloat(metric?.['Total Return'] || '0') -
-              parseFloat(hsi?.['Total Return'] || '0')
+              parseFloat(base?.['Total Return'] || '0')
           ) + '%'
         }
         highlight
       />
-      <Pairs name="Benchmark Return" value={hsi?.['Total Return']} highlight />
+      <Pairs name="Benchmark Return" value={base?.['Total Return']} highlight />
       <Pairs name="Alpha" value={metric?.['Alpha']} />
       <Pairs name="Beta" value={metric?.['Beta']} />
       <Pairs name="Sharpe" value={metric?.['Sharpe']} />
