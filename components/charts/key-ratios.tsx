@@ -52,7 +52,7 @@ export function KeyRatios({
           </div>
           <div className="flex flex-1 flex-col">
             <div className="text-center text-muted-foreground/50">
-              VS. INDUSTRY
+              VS. BENCHMARKET
             </div>
             <div className="flex w-full flex-1">
               <div className="flex flex-1 justify-end rounded-l-sm bg-primary-foreground/10">
