@@ -66,19 +66,21 @@ export function BarChart({
 }) {
   const series = useMemo(() => {
     if (!data) return undefined;
-    const d = groupBy(data, 'id').map(
-      ([name, data]) =>
-        [name, customTranslate ? customTranslate(data) : data] as const
-    );
+    const d = groupBy(data, 'id')
+      .map(
+        ([name, data]) =>
+          [name, customTranslate ? customTranslate(data) : data] as const
+      )
+      .reverse();
 
     return d.map(
-      ([name, data]) =>
+      ([name, data], i) =>
         ({
           type: 'bar',
           name,
           data: data.map((d) => [d.date, d.value * 100]),
-          barGap: '0%',
-          barCategoryGap: '50%'
+          barWidth: `${(100 - i * 30) * 0.8}%`,
+          barGap: `-85%`
         }) as EChartsOption['series']
     );
   }, [data, customTranslate]);

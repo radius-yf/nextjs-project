@@ -16,6 +16,7 @@ interface LineChartProps {
   }[];
   fmt?: string | null;
   loading?: boolean;
+  className?: string;
 }
 function generateOption(option: EChartsOption): EChartsOption {
   return deepMerge(
@@ -97,6 +98,7 @@ export function RangeLineChart({
   data,
   fmt = 'yyyy-MM-dd',
   loading,
+  className,
   onZoomChange
 }: LineChartProps & {
   onZoomChange?: (ev: { start?: string; end?: string }) => void;
@@ -191,7 +193,7 @@ export function RangeLineChart({
       <Chart
         option={useMemo(() => ({ ...option, ...chartData }), [chartData])}
         showLoading={loading}
-        className="min-h-[300px]"
+        className={className}
         onChartReady={ready}
         onEvents={onEvents}
       />

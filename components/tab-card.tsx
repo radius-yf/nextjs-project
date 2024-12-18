@@ -2,17 +2,19 @@
 import { useAsyncReducer } from '@/hooks/useAsyncReducer';
 import { ComponentPropsWithoutRef, useMemo, useState } from 'react';
 import { BarChart } from './charts/bar';
-import { BaseLineChart, LineChart } from './charts/line';
+import { BaseLineChart, LineChart, RangeLineChart } from './charts/line';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 
 type Mapper = {
   LineChart: ComponentPropsWithoutRef<typeof LineChart>;
   BaseLineChart: ComponentPropsWithoutRef<typeof BaseLineChart>;
+  RangeLineChart: ComponentPropsWithoutRef<typeof RangeLineChart>;
   BarChart: ComponentPropsWithoutRef<typeof BarChart>;
 };
 const mapper = {
   LineChart,
   BaseLineChart,
+  RangeLineChart,
   BarChart
 };
 
@@ -51,8 +53,8 @@ export function TabCard<C extends keyof Mapper>({
   );
   const [index, setIndex] = useState(tabIndex ?? 0);
   const Comp = useMemo(() => {
-    return getComponent(render, { ...data, loading } as any);
-  }, [data, loading, render]);
+    return getComponent(render, { ...initialData, ...data, loading } as any);
+  }, [data, initialData, loading, render]);
   return (
     <Card>
       <CardHeader>

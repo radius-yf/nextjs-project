@@ -13,7 +13,6 @@ import { AreaLineChart } from '@/components/charts/line';
 import PageContainer from '@/components/layout/page-container';
 import { TabCard } from '@/components/tab-card';
 import { DataTable, ReactTable } from '@/components/tables/table';
-import { H1, P } from '@/components/ui/typography';
 
 export default async function Analysis({
   params,
@@ -22,10 +21,9 @@ export default async function Analysis({
   params: { id: string };
   searchParams: { start: string; end: string };
 }) {
-  const [values, returnsY, returnsM, beta, underwater, drawdowns, metrics] =
+  const [values, returnsM, beta, underwater, drawdowns, metrics] =
     await Promise.all([
-      getReportPortfolioValues(params.id, p.start, p.end, ''),
-      getReportPortfolioReturns(params.id, 'y', p.start, p.end),
+      getReportPortfolioValues(params.id, undefined, undefined, ''),
       getReportPortfolioReturns(params.id, 'm', p.start, p.end),
       getReportPortfolioRollingIndicator(params.id, p.start, p.end, 'beta'),
       getReportPortfolioDdUnderwater(params.id, p.start, p.end),
@@ -36,29 +34,20 @@ export default async function Analysis({
   return (
     <PageContainer scrollable={true}>
       <div className="grid grid-cols-1 gap-6 pb-16">
-        <div>
-          <H1>Strategy Tearsheet</H1>
-          <P className="mb-8 w-1/2">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto ut
-            unde repudiandae, libero nemo incidunt atque adipisci assumenda
-            cumque, voluptatum possimus eos dignissimos natus vitae expedita
-            beatae explicabo iure porro.
-          </P>
-        </div>
         <TabCard
           title="Cumulative Returns vs Benchmark"
           options={[
             { name: 'Normal', value: '' },
             { name: 'Volatility Matched', value: 'match volatility' }
           ]}
-          render="LineChart"
-          initialData={{ data: values }}
+          render="RangeLineChart"
+          initialData={{ data: values, className: 'min-h-[500px]' }}
           getData={async (val) => {
             'use server';
             const data = await getReportPortfolioValues(
               params.id,
-              p.start,
-              p.end,
+              undefined,
+              undefined,
               val as any
             );
             return { data };
@@ -70,11 +59,11 @@ export default async function Analysis({
         <TabCard
           title="Returns vs Benchmark"
           options={[
-            { name: 'Year', value: 'y' },
-            { name: 'Month', value: 'm' }
+            { name: 'Month', value: 'm' },
+            { name: 'Year', value: 'y' }
           ]}
           render="BarChart"
-          initialData={{ data: returnsY }}
+          initialData={{ data: returnsM }}
           getData={async (val) => {
             'use server';
             const data = await getReportPortfolioReturns(
