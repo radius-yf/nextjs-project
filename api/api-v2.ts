@@ -567,39 +567,43 @@ export async function getReportPortfolioHoldingsHistoryValue(
   }[];
 }
 
-interface ReportPortfolioNextHoldings {
-  sec_name: string;
-  ticker: string;
-  industry: string;
-  score: number;
-  close: number;
-  pb: number;
-  pe: number;
-  ps: number;
-  evebitda: number;
-  pc: number;
-  sy: number;
-  ret_m3: number;
-  ret_m6: number;
-  ca_liab: number;
-  cash_liab: number;
-  total_debt_ebitda: number;
-  net_debt_equity: number;
-}
 /**
  * 投资组合下期买入列表
  */
-export async function getReportPortfolioNextHoldings(id: string) {
+export async function getReportPortfolioNextHoldings(
+  id: string,
+  trade_date?: string
+) {
   const { data } = await fetchGraphQL(
-    `query ReportPortfolioNextHoldings($id: String!) {
-      v2_report_portfolio_next_holdings(id: $id)
+    `query ReportPortfolioNextHoldings($id: String!, $trade_date: timestamp) {
+      v2_report_portfolio_next_holdings(id: $id, trade_date: $trade_date)
     }`,
     'ReportPortfolioNextHoldings',
-    { id }
+    { id, trade_date }
   );
-  return JSON.parse(
-    data.v2_report_portfolio_next_holdings
-  ) as ReportPortfolioNextHoldings[];
+  return JSON.parse(data.v2_report_portfolio_next_holdings) as Record<
+    string,
+    any
+  >[];
+}
+/**
+ * 投资组合下期买入列表加权指标(summary)
+ */
+export async function getReportPortfolioTradingSummary(
+  id: string,
+  trade_date?: string
+) {
+  const { data } = await fetchGraphQL(
+    `query ReportPortfolioTradingSummary($id: String!, $trade_date: timestamp) {
+      v2_report_portfolio_trading_summary(id: $id, trade_date: $trade_date) {
+        key
+        value
+      }
+    }`,
+    'ReportPortfolioTradingSummary',
+    { id, trade_date }
+  );
+  return generateSummary(data.v2_report_portfolio_trading_summary);
 }
 
 /**

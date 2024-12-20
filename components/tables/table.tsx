@@ -73,10 +73,12 @@ export function DataTable<
 
 export function ReactTable<TData extends unknown, TValue>({
   columns,
-  data
+  data,
+  className
 }: {
   columns: ColumnDef<TData, TValue>[];
   data: any[];
+  className?: string;
 }) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const table = useReactTable({
@@ -88,7 +90,7 @@ export function ReactTable<TData extends unknown, TValue>({
     state: { sorting }
   });
   return (
-    <Table className="relative overflow-auto">
+    <Table className="relative overflow-auto" containerClassName={className}>
       <TableHeader className="sticky top-0">
         {table.getHeaderGroups().map((headerGroup) => (
           <TableRow key={headerGroup.id}>
@@ -162,13 +164,16 @@ const genHeader = (title: string) => {
 
 export function SortTable({
   data,
-  columns
+  columns,
+  className
 }: {
   data: any[];
   columns: { accessorKey: string; header: string; sortable?: boolean }[];
+  className?: string;
 }) {
   return (
     <ReactTable
+      className={className}
       columns={columns.map((c) => ({
         accessorKey: c.accessorKey,
         header: c.sortable ? genHeader(c.header) : c.header

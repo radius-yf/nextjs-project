@@ -4,18 +4,21 @@ import { ComponentPropsWithoutRef, useMemo, useState } from 'react';
 import { BarChart } from './charts/bar';
 import { BaseLineChart, LineChart, RangeLineChart } from './charts/line';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { SortTable } from './tables/table';
 
 type Mapper = {
   LineChart: ComponentPropsWithoutRef<typeof LineChart>;
   BaseLineChart: ComponentPropsWithoutRef<typeof BaseLineChart>;
   RangeLineChart: ComponentPropsWithoutRef<typeof RangeLineChart>;
   BarChart: ComponentPropsWithoutRef<typeof BarChart>;
+  SortTable: ComponentPropsWithoutRef<typeof SortTable>;
 };
 const mapper = {
   LineChart,
   BaseLineChart,
   RangeLineChart,
-  BarChart
+  BarChart,
+  SortTable
 };
 
 interface TabCardProps<C extends keyof Mapper> {
@@ -24,7 +27,7 @@ interface TabCardProps<C extends keyof Mapper> {
   tabIndex?: number;
   initialData?: Mapper[C];
   render: C;
-  getData: (val: string) => Promise<Mapper[C]>;
+  getData: (val: string) => Promise<Partial<Mapper[C]>>;
 }
 
 function getComponent<C extends keyof Mapper>(render: C, props?: Mapper[C]) {
