@@ -36,10 +36,11 @@ export default function UserAuthForm() {
   const callbackUrl = searchParams.get('callbackUrl');
   const [loading, setLoading] = useState(false);
   // const { data: session } = useSession();
-  const defaultValues = {
-    email: 'test@test.com',
-    password: 'UnaEOIgrq#kgb89@#ls'
-  };
+  // const defaultValues = {
+  //   email: 'test@test.com',
+  //   password: 'UnaEOIgrq#kgb89@#ls'
+  // };
+  const defaultValues = {};
   const form = useForm<UserFormValue>({
     resolver: zodResolver(formSchema),
     defaultValues
