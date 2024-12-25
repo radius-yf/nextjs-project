@@ -3,8 +3,15 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import ThemeToggle from './ThemeToggle/theme-toggle';
 import { UserNav } from './user-nav';
+import { useMemo } from 'react';
 
-const menus = [
+interface Menu {
+  path: string;
+  name: string;
+  show?: (id: string) => boolean;
+}
+
+const allMenu: Menu[] = [
   {
     path: 'home',
     name: '策略首页'
@@ -19,12 +26,9 @@ const menus = [
   },
   {
     path: 'next',
-    name: '下期股票清单'
+    name: '下期股票清单',
+    show: (id: string) => !id.startsWith('bt_')
   }
-  // {
-  //   path: '/simulator',
-  //   name: '实盘模拟策略'
-  // }
 ];
 
 const hideHeader = ['/login'];
@@ -33,6 +37,10 @@ export function Navigation() {
   const path = usePathname();
   const query = useSearchParams();
   const [_, parent, id, page] = path.split('/');
+  const menus = useMemo(
+    () => allMenu.filter((m) => !id || (m.show?.(id) ?? true)),
+    [id]
+  );
   if (hideHeader.includes(path)) {
     return null;
   }
@@ -45,8 +53,9 @@ export function Navigation() {
         >
           <Link href="/nav">导航</Link>
         </li>
-        {parent === 'overview'
-          ? menus.map((menu) => (
+        {parent === 'overview' ? (
+          <>
+            {menus.map((menu) => (
               <li
                 key={menu.path}
                 data-active={menu.path === page}
@@ -62,8 +71,9 @@ export function Navigation() {
                   {menu.name}
                 </Link>
               </li>
-            ))
-          : undefined}
+            ))}
+          </>
+        ) : undefined}
       </ul>
       <UserNav />
       <ThemeToggle />
